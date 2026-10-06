@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env*.local
+env.json
+.aws-sam/
+.vercel/
+client/dist/
+frontend/dist/

@@ -1,0 +1,21 @@
+{
+  "name": "e-waste-management-system",
+  "version": "1.0.0",
+  "description": "Full Stack E-Waste Management System — Express/DynamoDB + React/Vite + AWS Lambda/SAM/Vercel",
+  "workspaces": [
+    "backend",
+    "client"
+  ],
+  "scripts": {
+    "build": "npm run build --prefix client",
+    "install:all": "npm install --prefix backend && npm install --prefix client",
+    "seed": "node backend/scripts/seed-admin.js",
+    "server": "npm start --prefix backend",
+    "dev:server": "npm run dev --prefix backend",
+    "client": "npm run dev --prefix client",
+    "build:client": "npm run build --prefix client",
+    "sam:build": "sam build",
+    "sam:local": "sam local start-api --env-vars env.json --port 5000",
+    "sam:deploy": "sam deploy --guided"
+  }
+}
