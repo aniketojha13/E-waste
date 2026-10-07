@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../services/api';
-import { PlusCircle, ArrowLeft, CheckCircle2, Upload } from 'lucide-react';
+import { PlusCircle, ArrowLeft, CheckCircle2, Upload, AlertCircle, Sparkles } from 'lucide-react';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const AddProduct = () => {
-  const [productName, setProductName] = useState('');
-  const [productAge, setProductAge] = useState('');
-  const [productPrice, setProductPrice] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Read prefilled data from AI Bot if routed from EcoBot
+  const aiState = location.state || {};
+
+  const [productName, setProductName] = useState(aiState.productName || '');
+  const [productAge, setProductAge] = useState(aiState.productAge || '');
+  const [productPrice, setProductPrice] = useState(aiState.productPrice || '');
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  const navigate = useNavigate();
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -32,20 +36,25 @@ const AddProduct = () => {
   const uploadImageToS3 = async () => {
     if (!imageFile) return null;
 
-    // Step 1: get a presigned PUT URL from our API
-    const { data } = await API.post('/uploads/presign', {
-      filename: imageFile.name,
-      contentType: imageFile.type
-    });
+    try {
+      // Step 1: get a presigned PUT URL from our API
+      const { data } = await API.post('/uploads/presign', {
+        filename: imageFile.name,
+        contentType: imageFile.type
+      });
 
-    // Step 2: PUT the file directly to S3 (no auth header — it's a presigned URL)
-    await fetch(data.uploadUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': imageFile.type },
-      body: imageFile
-    });
+      // Step 2: PUT the file directly to S3
+      await fetch(data.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': imageFile.type },
+        body: imageFile
+      });
 
-    return data.imageKey;
+      return data.imageKey;
+    } catch (uploadErr) {
+      console.warn('S3 upload skipped or not configured:', uploadErr.message);
+      return null;
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -60,17 +69,16 @@ const AddProduct = () => {
 
     setLoading(true);
     try {
-      // Upload image first (if provided), then create the product record
       const imageKey = await uploadImageToS3();
 
       await API.post('/products', {
         productName,
         productAge,
-        productPrice,
+        productPrice: Number(productPrice),
         ...(imageKey ? { imageKey } : {})
       });
 
-      setSuccess('Product added successfully! Initial status set to Pending.');
+      setSuccess('Product listed successfully! Initial status set to Pending.');
       setProductName('');
       setProductAge('');
       setProductPrice('');
@@ -86,72 +94,100 @@ const AddProduct = () => {
   };
 
   return (
-    <div style={{ maxWidth: '540px', margin: '2rem auto' }}>
-      <button onClick={() => navigate('/customer')} className="btn btn-outline" style={{ marginBottom: '1rem', padding: '0.4rem 0.8rem' }}>
+    <div style={{ maxWidth: '560px', margin: '2rem auto' }}>
+      <button onClick={() => navigate('/customer')} className="btn btn-outline" style={{ marginBottom: '1.25rem', padding: '0.4rem 0.85rem' }}>
         <ArrowLeft size={16} /> Back to Dashboard
       </button>
 
       <div className="card">
-        <h2 style={{ textAlign: 'center', marginBottom: '0.5rem', color: '#064e3b' }}>
+        {aiState.productName && (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            background: 'rgba(16, 185, 129, 0.15)', 
+            border: '1px solid rgba(16, 185, 129, 0.3)', 
+            borderRadius: '10px', 
+            padding: '0.65rem 1rem', 
+            marginBottom: '1.25rem',
+            color: '#34d399',
+            fontSize: '0.85rem',
+            fontWeight: 600
+          }}>
+            <Sparkles size={16} /> Pre-filled with EcoBot AI Analysis details
+          </div>
+        )}
+
+        <h2 style={{ textAlign: 'center', marginBottom: '0.5rem', color: '#f8fafc', fontSize: '1.8rem' }}>
           Add E-Waste Product
         </h2>
-        <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-          Enter details of the e-waste item you wish to dispose / recycle
+        <p style={{ textAlign: 'center', color: '#94a3b8', marginBottom: '1.75rem', fontSize: '0.9rem' }}>
+          Submit electronic items for doorstep collection and payment
         </p>
 
-        {error && <div className="alert alert-error">{error}</div>}
-        {success && <div className="alert alert-success"><CheckCircle2 size={16} style={{ marginRight: '0.5rem' }} />{success}</div>}
+        {error && (
+          <div className="alert alert-error">
+            <AlertCircle size={18} />
+            <span>{error}</span>
+          </div>
+        )}
+        {success && (
+          <div className="alert alert-success">
+            <CheckCircle2 size={18} />
+            <span>{success}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Product Name *</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="e.g. Dell Monitor, HP Printer, Old Smartphone"
+            <label>Product / Device Name *</label>
+            <input 
+              type="text" 
+              className="form-input" 
+              placeholder="e.g. Dell Monitor, HP Printer, iPhone 12..."
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
-              required
+              required 
             />
           </div>
 
           <div className="form-group">
             <label>Product Age *</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="e.g. 2 Years, 6 Months"
+            <input 
+              type="text" 
+              className="form-input" 
+              placeholder="e.g. 2 Years, 6 Months, 4+ Years..."
               value={productAge}
               onChange={(e) => setProductAge(e.target.value)}
-              required
+              required 
             />
           </div>
 
           <div className="form-group">
-            <label>Estimated Price / Value (₹) *</label>
-            <input
-              type="number"
-              className="form-input"
+            <label>Estimated Value (₹) *</label>
+            <input 
+              type="number" 
+              className="form-input" 
               placeholder="e.g. 1500"
               value={productPrice}
               onChange={(e) => setProductPrice(e.target.value)}
-              required
+              required 
             />
           </div>
 
           <div className="form-group">
-            <label>Product Photo (optional)</label>
+            <label>Product Photo (Optional)</label>
             <label
               htmlFor="photo-upload"
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
-                cursor: 'pointer', border: '1px dashed #d1d5db',
-                borderRadius: '6px', padding: '0.75rem 1rem',
-                color: '#6b7280', fontSize: '0.9rem', background: '#f9fafb'
+                cursor: 'pointer', border: '1px dashed rgba(148, 163, 184, 0.3)',
+                borderRadius: '10px', padding: '0.85rem 1rem',
+                color: '#94a3b8', fontSize: '0.9rem', background: 'rgba(15, 23, 42, 0.6)'
               }}
             >
-              <Upload size={16} />
-              {imageFile ? imageFile.name : 'Click to choose an image (JPEG / PNG / WebP)'}
+              <Upload size={18} color="#34d399" />
+              {imageFile ? imageFile.name : 'Choose an image file (JPEG / PNG / WebP)'}
             </label>
             <input
               id="photo-upload"
@@ -164,19 +200,19 @@ const AddProduct = () => {
               <img
                 src={imagePreview}
                 alt="Preview"
-                style={{ marginTop: '0.75rem', maxHeight: '180px', borderRadius: '6px', objectFit: 'cover', width: '100%' }}
+                style={{ marginTop: '0.85rem', maxHeight: '180px', borderRadius: '10px', objectFit: 'cover', width: '100%', border: '1px solid var(--border)' }}
               />
             )}
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary"
+          <button 
+            type="submit" 
+            className="btn btn-primary" 
             style={{ width: '100%', marginTop: '1rem' }}
             disabled={loading}
           >
             <PlusCircle size={18} />
-            {loading ? 'Submitting...' : 'Add Product'}
+            {loading ? 'Submitting Product...' : 'Submit E-Waste for Collection'}
           </button>
         </form>
       </div>

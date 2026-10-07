@@ -18,7 +18,7 @@ const AgentList = () => {
       setLoading(false);
     } catch (err) {
       setLoading(false);
-      setError('Failed to fetch collection agents list.');
+      setError('Failed to fetch agents list.');
     }
   };
 
@@ -29,59 +29,66 @@ const AgentList = () => {
   return (
     <div style={{ maxWidth: '1000px', margin: '2rem auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <button onClick={() => navigate('/admin')} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem' }}>
+        <button onClick={() => navigate('/admin')} className="btn btn-outline" style={{ padding: '0.4rem 0.85rem' }}>
           <ArrowLeft size={16} /> Back to Admin Dashboard
         </button>
-        <button onClick={fetchAgents} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem' }}>
+        <button onClick={fetchAgents} className="btn btn-outline" style={{ padding: '0.4rem 0.85rem' }}>
           <RefreshCw size={16} /> Refresh
         </button>
       </div>
 
       <div className="card">
-        <h2 style={{ color: '#064e3b', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <Truck size={24} color="#059669" /> Collection Agents Table
+        <h2 style={{ color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.5rem', fontSize: '1.6rem' }}>
+          <Truck size={24} color="#06b6d4" /> Collection Agents Table
         </h2>
-        <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-          List of authorized collection agents registered in the system
+        <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+          Verified field personnel authorized for e-waste doorstep collection
         </p>
 
         {error && <div className="alert alert-error">{error}</div>}
 
         {loading ? (
-          <p style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>Loading agents...</p>
+          <p style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8' }}>Loading collection agents...</p>
         ) : agents.length === 0 ? (
-          <p style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>No collection agents found.</p>
+          <p style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8' }}>No collection agents registered.</p>
         ) : (
           <div className="table-container">
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th>Name</th>
+                  <th>Agent Name</th>
                   <th>Username</th>
-                  <th>Mobile Number</th>
-                  <th>Email ID</th>
-                  <th>Zone / Address</th>
+                  <th>Contact Info</th>
+                  <th>Assigned Center</th>
+                  <th>Active Since</th>
                 </tr>
               </thead>
               <tbody>
                 {agents.map((a) => (
-                  <tr key={a._id}>
-                    <td style={{ fontWeight: 600, color: '#111827' }}>{a.name}</td>
-                    <td style={{ color: '#059669', fontWeight: 500 }}>{a.username}</td>
+                  <tr key={a.username}>
+                    <td style={{ fontWeight: 600, color: '#f8fafc' }}>{a.name}</td>
+                    <td style={{ color: '#06b6d4', fontFamily: 'monospace' }}>@{a.username}</td>
                     <td>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <Phone size={14} color="#6b7280" /> {a.mobile_number || 'N/A'}
-                      </span>
+                      <div style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
+                        {a.email && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <Mail size={13} color="#94a3b8" /> {a.email}
+                          </div>
+                        )}
+                        {a.mobile && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem' }}>
+                            <Phone size={13} color="#94a3b8" /> {a.mobile}
+                          </div>
+                        )}
+                      </div>
                     </td>
-                    <td>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <Mail size={14} color="#6b7280" /> {a.email_id || 'N/A'}
-                      </span>
+                    <td style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <MapPin size={13} color="#06b6d4" /> {a.address || 'Central E-Waste Depot'}
+                      </div>
                     </td>
-                    <td>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <MapPin size={14} color="#6b7280" /> {a.address || 'N/A'}
-                      </span>
+                    <td style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                      {a.createdAt ? new Date(a.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
                   </tr>
                 ))}
