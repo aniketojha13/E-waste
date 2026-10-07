@@ -12,17 +12,37 @@ const INITIAL_USERS = [
     password: bcrypt.hashSync('admin123', 10),
     role: 'admin',
     mobile: '9999999999',
-    address: 'E-waste Admin Headquarters',
+    address: 'E-Waste Admin Central Headquarters',
     createdAt: new Date().toISOString()
   },
   {
-    name: 'John Agent',
+    name: 'John Agent (Downtown Center)',
     username: 'agent1',
     email: 'agent1@ewaste.com',
     password: bcrypt.hashSync('agent123', 10),
     role: 'agent',
-    mobile: '8888888888',
-    address: 'City E-waste Collection Center',
+    mobile: '9876543210',
+    address: 'Downtown E-Waste Hub, Sector 4, Main Market',
+    createdAt: new Date().toISOString()
+  },
+  {
+    name: 'Rajesh Sharma (North Hub)',
+    username: 'agent2',
+    email: 'agent2@ewaste.com',
+    password: bcrypt.hashSync('agent123', 10),
+    role: 'agent',
+    mobile: '9811223344',
+    address: 'North District Recycling Depot, Industrial Area Phase 2',
+    createdAt: new Date().toISOString()
+  },
+  {
+    name: 'Amit Patel (South Hub)',
+    username: 'agent3',
+    email: 'agent3@ewaste.com',
+    password: bcrypt.hashSync('agent123', 10),
+    role: 'agent',
+    mobile: '9822334455',
+    address: 'South Metro E-Waste Processing Center, Ring Road',
     createdAt: new Date().toISOString()
   }
 ];
@@ -30,7 +50,16 @@ const INITIAL_USERS = [
 function loadData() {
   try {
     if (fs.existsSync(DATA_FILE)) {
-      return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+      // Ensure all initial agents are present if users array exists
+      if (Array.isArray(data['ewaste-users'])) {
+        for (const u of INITIAL_USERS) {
+          if (!data['ewaste-users'].some(x => x.username.toLowerCase() === u.username.toLowerCase())) {
+            data['ewaste-users'].push(u);
+          }
+        }
+      }
+      return data;
     }
   } catch (err) {
     console.warn('Failed reading local DB file, initializing fresh store:', err.message);
@@ -96,7 +125,7 @@ const localStore = {
         throw error;
       }
 
-      if (input.ExpressionAttributeValues) {
+      if (existing && input.ExpressionAttributeValues) {
         if (input.ExpressionAttributeValues[':s']) {
           existing.status = input.ExpressionAttributeValues[':s'];
         }

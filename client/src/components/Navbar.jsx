@@ -8,7 +8,6 @@ import {
   ShieldCheck, 
   LogIn, 
   Bot, 
-  Sparkles,
   Truck
 } from 'lucide-react';
 
@@ -18,7 +17,7 @@ const Navbar = ({ onOpenAiBot }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login');
   };
 
   const getDashboardPath = () => {
@@ -31,71 +30,69 @@ const Navbar = ({ onOpenAiBot }) => {
   return (
     <header className="navbar">
       <Link to={getDashboardPath()} className="nav-brand">
-        <div className="nav-brand-icon">
-          <Recycle size={22} color="#ffffff" />
+        <div style={{ background: '#10b981', color: '#0b0f19', padding: '0.35rem', borderRadius: '6px', display: 'flex' }}>
+          <Recycle size={20} />
         </div>
-        <span>EcoCycle <span style={{ color: '#10b981', fontWeight: 400 }}>E-Waste</span></span>
+        <span>EcoCycle <span style={{ color: '#10b981', fontWeight: 500 }}>E-Waste</span></span>
+        <span className="nav-brand-badge">Hub</span>
       </Link>
 
       <div className="nav-links">
-        {/* EcoBot AI button */}
+        {/* EcoBot AI Trigger */}
         <button 
           type="button" 
           onClick={onOpenAiBot}
           className="btn btn-outline"
           style={{ 
-            padding: '0.45rem 0.9rem', 
-            fontSize: '0.85rem', 
+            padding: '0.4rem 0.85rem', 
+            fontSize: '0.8rem', 
             color: '#34d399', 
-            borderColor: 'rgba(16, 185, 129, 0.4)',
-            background: 'rgba(16, 185, 129, 0.1)'
+            borderColor: '#1e293b'
           }}
-          title="Analyze device with AI"
+          title="EcoBot AI Device Diagnosis"
         >
-          <Bot size={16} />
+          <Bot size={15} />
           <span>EcoBot AI</span>
-          <Sparkles size={12} color="#34d399" />
         </button>
 
         {user ? (
           <div className="nav-user">
             <span className="role-badge">
-              {user.role === 'admin' ? '🛡️ Admin' : user.role === 'agent' ? '🚚 Agent' : '🧑‍💻 Customer'}
+              {user.role === 'admin' ? 'Admin' : user.role === 'agent' ? 'Collector' : 'Customer'}
             </span>
-            <span style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.9rem' }}>
+            <span style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.85rem' }}>
               {user.name || user.username}
             </span>
-            <Link to="/profile" className="btn btn-outline" style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}>
-              <UserIcon size={16} /> Profile
+            <Link to="/profile" className="btn btn-outline" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>
+              <UserIcon size={14} /> Profile
             </Link>
             <button 
               onClick={handleLogout} 
               className="btn btn-outline" 
-              style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+              style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', color: '#f87171' }}
             >
-              <LogOut size={16} /> Log Out
+              <LogOut size={14} /> Log Out
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Link to="/login" className="btn btn-primary" style={{ padding: '0.45rem 1.1rem', fontSize: '0.875rem' }}>
-              <LogIn size={15} /> Sign In / Register
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <Link to="/login" className="btn btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.825rem' }}>
+              <LogIn size={14} /> Customer Sign In
             </Link>
 
-            {/* Corner Option for Admin and Customer Agent Login */}
+            {/* Changed from "Staff Portal" to "Admin & Collector Login" per user instruction */}
             <Link 
-              to="/login?role=admin" 
+              to="/login?role=agent" 
               className="btn btn-outline" 
               style={{ 
                 padding: '0.45rem 0.85rem', 
                 fontSize: '0.8rem',
                 color: '#38bdf8',
-                borderColor: 'rgba(6, 182, 212, 0.35)',
-                background: 'rgba(6, 182, 212, 0.08)'
+                borderColor: '#1e293b'
               }}
-              title="Staff Portal (Admin & Agent Login)"
+              title="Admin and Collection Agent Sign In / Login"
             >
-              <ShieldCheck size={15} /> Staff Portal
+              <ShieldCheck size={14} /> Admin & Collector Login
             </Link>
           </div>
         )}
