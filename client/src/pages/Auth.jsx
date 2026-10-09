@@ -47,9 +47,10 @@ const Auth = () => {
   // Redirect if user is already logged in
   useEffect(() => {
     if (user) {
-      if (user.role === 'admin') navigate('/admin', { replace: true });
-      else if (user.role === 'agent') navigate('/agent', { replace: true });
-      else navigate('/customer', { replace: true });
+      const role = user.role || user.user?.role;
+      if (role === 'admin') navigate('/admin', { replace: true });
+      else if (role === 'agent') navigate('/agent', { replace: true });
+      else if (role === 'customer') navigate('/customer', { replace: true });
     }
   }, [user, navigate]);
 
@@ -67,6 +68,11 @@ const Auth = () => {
     const res = await login(loginData.username, loginData.password, targetRole);
     if (!res.success) {
       setError(res.message);
+    } else {
+      const role = res.user?.role || res.user?.user?.role;
+      if (role === 'admin') navigate('/admin', { replace: true });
+      else if (role === 'agent') navigate('/agent', { replace: true });
+      else navigate('/customer', { replace: true });
     }
   };
 

@@ -41,7 +41,11 @@ router.post('/', verifyToken, verifyRole(['customer', 'admin']), async (req, res
       specs,
       accessories,
       assignedAgent,
-      customerNotes
+      customerNotes,
+      imeiOrSerial,
+      isVerifiedClean,
+      ram,
+      storage
     } = req.body;
 
     if (!productName || !productPrice) {
@@ -68,6 +72,10 @@ router.post('/', verifyToken, verifyRole(['customer', 'admin']), async (req, res
       yearOfManufacture: yearOfManufacture || '',
       condition: condition || 'Functional',
       specs: specs || '',
+      ram: ram || '',
+      storage: storage || '',
+      imeiOrSerial: imeiOrSerial || '',
+      isVerifiedClean: isVerifiedClean !== undefined ? Boolean(isVerifiedClean) : false,
       accessories: Array.isArray(accessories) ? accessories : (accessories ? [accessories] : []),
       assignedAgent: assignedAgent || 'agent1',
       customerNotes: customerNotes || '',
@@ -147,6 +155,10 @@ router.get('/my-products', verifyToken, async (req, res) => {
         yearOfManufacture: p.yearOfManufacture,
         condition: p.condition,
         specs: p.specs,
+        ram: p.ram,
+        storage: p.storage,
+        imeiOrSerial: p.imeiOrSerial,
+        isVerifiedClean: p.isVerifiedClean,
         accessories: p.accessories,
         assignedAgent: p.assignedAgent,
         assignedAgentDetails: agentInfo,
@@ -200,6 +212,10 @@ router.get('/', verifyToken, verifyRole(['agent', 'admin']), async (req, res) =>
       yearOfManufacture: p.yearOfManufacture,
       condition: p.condition,
       specs: p.specs,
+      ram: p.ram,
+      storage: p.storage,
+      imeiOrSerial: p.imeiOrSerial,
+      isVerifiedClean: p.isVerifiedClean,
       accessories: p.accessories,
       assignedAgent: p.assignedAgent,
       customerNotes: p.customerNotes,

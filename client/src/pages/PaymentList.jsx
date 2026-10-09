@@ -57,12 +57,13 @@ const PaymentList = () => {
     }
   };
 
-  const isAgentOrAdmin = user?.role === 'agent' || user?.role === 'admin';
+  const role = user?.role || user?.user?.role;
+  const isAgentOrAdmin = role === 'agent' || role === 'admin';
 
   return (
     <div style={{ maxWidth: '1000px', margin: '2rem auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <button onClick={() => navigate(user?.role === 'admin' ? '/admin' : '/agent')} className="btn btn-outline" style={{ padding: '0.4rem 0.85rem' }}>
+        <button onClick={() => navigate(role === 'admin' ? '/admin' : '/agent')} className="btn btn-outline" style={{ padding: '0.4rem 0.85rem' }}>
           <ArrowLeft size={16} /> Back to Dashboard
         </button>
         <button onClick={fetchPayments} className="btn btn-outline" style={{ padding: '0.4rem 0.85rem' }}>

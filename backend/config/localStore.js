@@ -114,6 +114,17 @@ const localStore = {
       return {};
     }
 
+    if (commandName === 'DeleteCommand') {
+      const keyField = input.Key.username !== undefined ? 'username' : 'pid';
+      const targetVal = String(input.Key[keyField]).toLowerCase();
+      const index = items.findIndex(i => String(i[keyField]).toLowerCase() === targetVal);
+      if (index >= 0) {
+        items.splice(index, 1);
+        saveData(data);
+      }
+      return {};
+    }
+
     if (commandName === 'UpdateCommand') {
       const keyField = input.Key.username !== undefined ? 'username' : 'pid';
       const targetVal = String(input.Key[keyField]).toLowerCase();

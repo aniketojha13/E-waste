@@ -6,7 +6,20 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('ewaste_user');
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved);
+      // Migrate old nested format { message, token, user: { ... } } if present
+      if (parsed && parsed.user && typeof parsed.user === 'object') {
+        return {
+          ...parsed.user,
+          token: parsed.token || parsed.user.token
+        };
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
   });
   const [loading, setLoading] = useState(false);
 
@@ -22,9 +35,14 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await API.post('/auth/login', { username, password, role });
-      setUser(res.data);
+      // Flatten response so user.role, user.name, user.username and user.token are all top-level
+      const userData = {
+        ...(res.data.user || {}),
+        token: res.data.token
+      };
+      setUser(userData);
       setLoading(false);
-      return { success: true, user: res.data };
+      return { success: true, user: userData };
     } catch (err) {
       setLoading(false);
       return {
@@ -38,10 +56,13 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await API.post('/auth/register', customerData);
-      // Store same shape as login: { token, user, message }
-      setUser(res.data);
+      const userData = {
+        ...(res.data.user || {}),
+        token: res.data.token
+      };
+      setUser(userData);
       setLoading(false);
-      return { success: true, message: res.data.message };
+      return { success: true, user: userData, message: res.data.message };
     } catch (err) {
       setLoading(false);
       return {

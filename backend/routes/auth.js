@@ -131,4 +131,40 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
+// ─── PUT /auth/me ────────────────────────────────────────────────────────────
+// Allows any authenticated user (admin, agent, customer) to edit their profile
+router.put('/me', verifyToken, async (req, res) => {
+  try {
+    const existing = await getByUsername(req.user.username);
+    if (!existing) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { name, email, mobile, address, password } = req.body;
+
+    const updated = {
+      ...existing,
+      name: name !== undefined ? name : existing.name,
+      email: email !== undefined ? email.toLowerCase() : existing.email,
+      mobile: mobile !== undefined ? mobile : (existing.mobile || ''),
+      address: address !== undefined ? address : (existing.address || ''),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (password && password.trim().length >= 4) {
+      const salt = await bcrypt.genSalt(10);
+      updated.password = await bcrypt.hash(password, salt);
+    }
+
+    await putUser(updated);
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: safeUser(updated)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

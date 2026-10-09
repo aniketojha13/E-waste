@@ -31,9 +31,10 @@ const ProductList = () => {
   const [actionSuccess, setActionSuccess] = useState('');
   const [updatingPid, setUpdatingPid] = useState(null);
 
-  const isCustomer = user?.role === 'customer';
-  const isAgent = user?.role === 'agent';
-  const isAdmin = user?.role === 'admin';
+  const userRole = user?.role || user?.user?.role;
+  const isCustomer = userRole === 'customer';
+  const isAgent = userRole === 'agent';
+  const isAdmin = userRole === 'admin';
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -154,11 +155,10 @@ const ProductList = () => {
                 <div 
                   key={item.pid}
                   style={{
-                    background: '#0d1424',
-                    border: '1px solid #1e293b',
-                    borderRadius: '8px',
-                    padding: '1.1rem 1.25rem',
-                    transition: 'border-color 0.15s ease'
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius)',
+                    padding: '1.1rem 1.25rem'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -168,17 +168,17 @@ const ProductList = () => {
                         <img
                           src={item.imageUrl}
                           alt={item.productName}
-                          style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #1e293b' }}
+                          style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border)' }}
                         />
                       ) : (
-                        <div style={{ width: '64px', height: '64px', borderRadius: '6px', background: 'var(--bg-secondary)', border: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Package size={26} color="#64748b" />
+                        <div style={{ width: '64px', height: '64px', borderRadius: '6px', background: 'var(--bg-card)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Package size={26} color="var(--text-dim)" />
                         </div>
                       )}
 
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <h3 style={{ margin: 0, color: '#f8fafc', fontSize: '1.05rem', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.05rem', fontWeight: 600 }}>
                             {item.productName}
                           </h3>
                           <span className={`status-badge status-${(item.status || 'pending').toLowerCase()}`}>
@@ -186,15 +186,20 @@ const ProductList = () => {
                           </span>
                         </div>
 
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0.3rem 0', display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
-                          <span style={{ color: '#38bdf8', fontFamily: 'monospace' }}>ID: {item.pid}</span>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.3rem 0', display: 'flex', gap: '0.85rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--secondary)', fontFamily: 'monospace' }}>ID: {item.pid}</span>
                           <span>Age: {item.productAge}</span>
                           {item.specs && <span>Specs: {item.specs}</span>}
                           {item.condition && <span style={{ textTransform: 'capitalize' }}>Condition: {item.condition}</span>}
+                          {item.imeiOrSerial && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', color: 'var(--primary)', fontWeight: 600 }}>
+                              <ShieldCheck size={13} /> S/N: {item.imeiOrSerial} (Verified Clean)
+                            </span>
+                          )}
                         </div>
 
                         {item.customerNotes && (
-                          <div style={{ fontSize: '0.75rem', color: '#cbd5e1', background: 'var(--bg-secondary)', padding: '0.2rem 0.5rem', borderRadius: '4px', display: 'inline-block' }}>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: 'var(--bg-card)', padding: '0.2rem 0.5rem', borderRadius: '4px', display: 'inline-block', border: '1px solid var(--border)' }}>
                             Note: {item.customerNotes}
                           </div>
                         )}
@@ -203,8 +208,8 @@ const ProductList = () => {
 
                     {/* Right: Payout Valuation */}
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Payout Value</span>
-                      <div style={{ fontSize: '1.35rem', fontWeight: 700, color: '#34d399' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Payout Value</span>
+                      <div style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--primary)' }}>
                         ₹{item.productPrice?.toLocaleString()}
                       </div>
                     </div>

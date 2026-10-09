@@ -75,4 +75,13 @@ async function countByRole(role) {
   return Count || 0;
 }
 
-module.exports = { getByUsername, getByEmail, putUser, listByRole, countByRole };
+/** Delete a user by username. */
+async function deleteUser(username) {
+  const { DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+  await docClient.send(new DeleteCommand({
+    TableName: TABLE(),
+    Key: { username: username.toLowerCase() }
+  }));
+}
+
+module.exports = { getByUsername, getByEmail, putUser, listByRole, countByRole, deleteUser };

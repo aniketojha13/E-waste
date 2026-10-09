@@ -12,12 +12,23 @@ import {
   Phone,
   MapPin,
   Calendar,
-  Layers
+  Layers,
+  ShieldCheck,
+  ShieldAlert,
+  Cpu,
+  HardDrive,
+  RefreshCw,
+  Recycle,
+  Leaf
 } from 'lucide-react';
 import { 
   DEVICE_CATEGORIES, 
+  BRAND_MODELS,
+  RAM_OPTIONS,
+  STORAGE_OPTIONS,
   MANUFACTURE_YEARS, 
   CONDITION_GRADES,
+  verifyImeiOrSerial,
   calculateDeviceValuation
 } from '../services/deviceCatalog';
 
@@ -31,12 +42,17 @@ const AddProduct = () => {
   const [category, setCategory] = useState(aiState.category || 'smartphone');
   const [brand, setBrand] = useState(aiState.brand || 'Apple');
   const [model, setModel] = useState(aiState.model || '');
-  const [productName, setProductName] = useState(aiState.productName || '');
+  const [customModel, setCustomModel] = useState('');
+  const [ram, setRam] = useState(aiState.ram || '8 GB');
+  const [storage, setStorage] = useState(aiState.storage || '128 GB');
   const [yearOfManufacture, setYearOfManufacture] = useState(aiState.yearOfManufacture || 2023);
   const [condition, setCondition] = useState(aiState.condition || 'good');
-  const [specs, setSpecs] = useState(aiState.specs || '128 GB Storage, 8 GB RAM');
   const [productPrice, setProductPrice] = useState(aiState.productPrice || '');
   
+  // Anti-Theft IMEI / Serial authentication
+  const [imeiOrSerial, setImeiOrSerial] = useState(aiState.imeiOrSerial || '');
+  const [imeiCheckResult, setImeiCheckResult] = useState(null);
+
   // Agents list for customer selection
   const [agents, setAgents] = useState([]);
   const [selectedAgent, setSelectedAgent] = useState('agent1');
@@ -47,6 +63,10 @@ const AddProduct = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const selectedCategoryObj = DEVICE_CATEGORIES.find(c => c.id === category) || DEVICE_CATEGORIES[0];
+  const availableBrands = selectedCategoryObj.brands || [];
+  const popularModels = BRAND_MODELS[brand] || [];
 
   // Fetch registered collection agents
   useEffect(() => {
@@ -62,19 +82,45 @@ const AddProduct = () => {
       });
   }, []);
 
-  // Recalculate default price when model or year changes if not manually set
+  // Update default brand when category changes
+  const handleCategoryChange = (newCat) => {
+    setCategory(newCat);
+    const catObj = DEVICE_CATEGORIES.find(c => c.id === newCat);
+    if (catObj && catObj.brands.length > 0) {
+      setBrand(catObj.brands[0]);
+      setModel('');
+    }
+    setImeiCheckResult(null);
+  };
+
+  // Recalculate estimated price dynamically
   useEffect(() => {
-    if (!aiState.productPrice && model) {
+    if (!aiState.productPrice) {
+      const activeModel = model === 'Other' || !model ? (customModel || 'Device') : model;
       const calc = calculateDeviceValuation({
         category,
         brand,
-        model,
+        model: activeModel,
         yearOfManufacture,
-        conditionId: condition
+        conditionId: condition,
+        storage,
+        ram
       });
       setProductPrice(calc.estimatedPrice);
     }
-  }, [category, brand, model, yearOfManufacture, condition]);
+  }, [category, brand, model, customModel, yearOfManufacture, condition, storage, ram]);
+
+  const handleVerifyImei = () => {
+    if (!imeiOrSerial.trim()) {
+      setImeiCheckResult({
+        valid: false,
+        message: 'Please enter the 15-digit IMEI or Serial Number to verify.'
+      });
+      return;
+    }
+    const res = verifyImeiOrSerial(imeiOrSerial, category);
+    setImeiCheckResult(res);
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -112,10 +158,18 @@ const AddProduct = () => {
     setError('');
     setSuccess('');
 
-    const finalTitle = productName || `${brand} ${model || 'Device'} (${yearOfManufacture})`;
+    const chosenModel = model === 'Other' || !model ? (customModel || 'Standard') : model;
+    const finalTitle = `${brand} ${chosenModel} (${yearOfManufacture})`;
 
     if (!finalTitle || !productPrice) {
-      setError('Please provide the device name/model and valuation price.');
+      setError('Please provide device model and valuation price.');
+      return;
+    }
+
+    // Anti-theft warning if mobile/tablet and IMEI not verified
+    const isMobileOrTablet = category === 'smartphone' || category === 'tablet';
+    if (isMobileOrTablet && (!imeiOrSerial || (imeiCheckResult && !imeiCheckResult.valid))) {
+      setError('Please verify a valid 15-digit IMEI number to prevent sale of stolen/lost devices.');
       return;
     }
 
@@ -129,30 +183,54 @@ const AddProduct = () => {
         productPrice: Number(productPrice),
         category,
         brand,
-        model: model || finalTitle,
+        model: chosenModel,
         yearOfManufacture,
         condition,
-        specs,
+        ram,
+        storage,
+        specs: `${storage} Storage, ${ram} RAM`,
+        imeiOrSerial: imeiOrSerial.trim(),
+        isVerifiedClean: imeiCheckResult?.valid || false,
         assignedAgent: selectedAgent,
         customerNotes,
         ...(imageKey ? { imageKey } : {})
       });
 
-      setSuccess('E-waste product listed! Assigned collection agent has been notified.');
+      setSuccess('E-waste listed successfully! Doorstep pickup scheduled with guaranteed buyback payout.');
       setLoading(false);
 
       setTimeout(() => navigate('/my-products'), 1400);
     } catch (err) {
       setLoading(false);
-      setError(err.response?.data?.message || 'Failed to submit product. Please verify fields.');
+      setError(err.response?.data?.message || 'Failed to submit product.');
     }
   };
 
   return (
-    <div style={{ maxWidth: '640px', margin: '2rem auto' }}>
+    <div style={{ maxWidth: '680px', margin: '1.5rem auto' }}>
       <button onClick={() => navigate('/customer')} className="btn btn-outline" style={{ marginBottom: '1.25rem', padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>
         <ArrowLeft size={14} /> Back to Dashboard
       </button>
+
+      {/* 3R Circular Commitment Banner */}
+      <div className="circular-banner">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ background: 'var(--primary)', color: '#ffffff', padding: '0.55rem', borderRadius: '50%', display: 'flex' }}>
+            <Recycle size={22} />
+          </div>
+          <div>
+            <div style={{ fontSize: '0.725rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)' }}>
+              3R Circular Economy: REDUCE • REUSE • RECYCLE
+            </div>
+            <h4 style={{ margin: '0.15rem 0 0', color: 'var(--text-main)', fontSize: '0.95rem', fontWeight: 700 }}>
+              Guaranteed Buyback & Instant Doorstep Settlement
+            </h4>
+            <p style={{ margin: 0, fontSize: '0.775rem', color: 'var(--text-muted)' }}>
+              If your device works, we reuse & refurbish it; if dead, we extract rare metals safely. We buy it either way!
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="card">
         {aiState.productName && (
@@ -160,12 +238,12 @@ const AddProduct = () => {
             display: 'flex', 
             alignItems: 'center', 
             gap: '0.5rem', 
-            background: 'rgba(16, 185, 129, 0.1)', 
-            border: '1px solid rgba(16, 185, 129, 0.25)', 
+            background: 'var(--primary-light)', 
+            border: '1px solid rgba(16, 185, 129, 0.3)', 
             borderRadius: '8px', 
             padding: '0.65rem 0.85rem', 
             marginBottom: '1.25rem',
-            color: '#34d399',
+            color: 'var(--primary)',
             fontSize: '0.825rem',
             fontWeight: 600
           }}>
@@ -173,11 +251,11 @@ const AddProduct = () => {
           </div>
         )}
 
-        <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: '#f8fafc', marginBottom: '0.25rem' }}>
-          List E-Waste for Doorstep Collection
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.25rem' }}>
+          Sell Electronic Gadgets for Doorstep Collection
         </h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-          Provide hardware details, select your nearest collection agent, and confirm payout.
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+          Select device specifications, verify serial/IMEI security, and choose your preferred local collection agent.
         </p>
 
         {error && (
@@ -194,13 +272,13 @@ const AddProduct = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Section 1: Device Specs */}
+          {/* Section 1: Category & Brand */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div className="form-group">
-              <label>Device Category</label>
+              <label>Device Category *</label>
               <select 
                 value={category} 
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 className="form-input"
               >
                 {DEVICE_CATEGORIES.map(c => (
@@ -210,42 +288,55 @@ const AddProduct = () => {
             </div>
 
             <div className="form-group">
-              <label>Brand / Manufacturer</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="e.g. Apple, Dell, Samsung"
+              <label>Brand / Manufacturer *</label>
+              <select
                 value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                required
-              />
+                onChange={(e) => {
+                  setBrand(e.target.value);
+                  setModel('');
+                }}
+                className="form-input"
+              >
+                {availableBrands.map(b => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
             </div>
           </div>
 
+          {/* Section 2: Model & Manufacture Year */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div className="form-group">
               <label>Model Name / Series *</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="e.g. iPhone 13 Pro, XPS 15"
-                value={model}
-                onChange={(e) => {
-                  setModel(e.target.value);
-                  setProductName(`${brand} ${e.target.value} (${yearOfManufacture})`);
-                }}
-                required
-              />
+              {popularModels.length > 0 ? (
+                <select
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  className="form-input"
+                >
+                  <option value="">Select popular model...</option>
+                  {popularModels.map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                  <option value="Other">Other / Not Listed</option>
+                </select>
+              ) : (
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="e.g. Model number or series"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  required
+                />
+              )}
             </div>
 
             <div className="form-group">
-              <label>Year of Manufacture</label>
+              <label>Year of Manufacture *</label>
               <select 
                 value={yearOfManufacture} 
-                onChange={(e) => {
-                  setYearOfManufacture(e.target.value);
-                  setProductName(`${brand} ${model || 'Device'} (${e.target.value})`);
-                }}
+                onChange={(e) => setYearOfManufacture(Number(e.target.value))}
                 className="form-input"
               >
                 {MANUFACTURE_YEARS.map(y => (
@@ -255,55 +346,142 @@ const AddProduct = () => {
             </div>
           </div>
 
+          {model === 'Other' && (
+            <div className="form-group">
+              <label>Specify Custom Model *</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Type exact model name (e.g. Galaxy M34, ThinkBook 14)"
+                value={customModel}
+                onChange={(e) => setCustomModel(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
+          {/* Section 3: RAM & Storage */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div className="form-group">
-              <label>Hardware Condition</label>
+              <label>RAM Capacity</label>
               <select 
-                value={condition} 
-                onChange={(e) => setCondition(e.target.value)}
+                value={ram} 
+                onChange={(e) => setRam(e.target.value)}
                 className="form-input"
               >
-                {CONDITION_GRADES.map(g => (
-                  <option key={g.id} value={g.id}>{g.grade}</option>
+                {RAM_OPTIONS.map(r => (
+                  <option key={r} value={r}>{r}</option>
                 ))}
               </select>
             </div>
 
             <div className="form-group">
-              <label>Storage / RAM Specs</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="e.g. 128GB Storage, 8GB RAM"
-                value={specs}
-                onChange={(e) => setSpecs(e.target.value)}
-              />
+              <label>Internal Storage</label>
+              <select 
+                value={storage} 
+                onChange={(e) => setStorage(e.target.value)}
+                className="form-input"
+              >
+                {STORAGE_OPTIONS.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Price valuation */}
+          {/* Section 4: Hardware Condition */}
           <div className="form-group">
-            <label>Estimated Payout Value (₹) *</label>
+            <label>Working & Cosmetic Condition</label>
+            <select 
+              value={condition} 
+              onChange={(e) => setCondition(e.target.value)}
+              className="form-input"
+            >
+              {CONDITION_GRADES.map(g => (
+                <option key={g.id} value={g.id}>{g.grade} — {g.desc}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Section 5: Anti-Theft IMEI / Serial Authentication */}
+          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '1rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+              <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--primary)' }}>
+                <ShieldCheck size={16} /> Anti-Theft Security Check: {selectedCategoryObj.requiresImei ? 'IMEI (15-digit)' : 'Hardware Serial Number'} *
+              </label>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>CEIR / GSMA Verification</span>
+            </div>
+            
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0 0 0.65rem' }}>
+              {selectedCategoryObj.requiresImei 
+                ? 'Dial *#06# on phone keypad to view your 15-digit IMEI. Verifies device is not reported stolen.' 
+                : 'Enter your device serial number (S/N) from the back panel, box, or system settings.'}
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="text"
+                className="form-input"
+                placeholder={selectedCategoryObj.requiresImei ? 'Enter 15-digit IMEI number' : 'Enter Serial Number (e.g. C02G402...)'}
+                value={imeiOrSerial}
+                onChange={(e) => {
+                  setImeiOrSerial(e.target.value);
+                  setImeiCheckResult(null);
+                }}
+                required
+              />
+              <button
+                type="button"
+                onClick={handleVerifyImei}
+                className="btn btn-outline"
+                style={{ fontSize: '0.75rem', padding: '0.5rem 0.85rem', borderColor: 'var(--primary)', color: 'var(--primary)' }}
+              >
+                Verify Authenticity
+              </button>
+            </div>
+
+            {imeiCheckResult && (
+              <div style={{
+                marginTop: '0.65rem',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '6px',
+                fontSize: '0.775rem',
+                background: imeiCheckResult.valid ? 'var(--primary-light)' : 'rgba(239, 68, 68, 0.1)',
+                border: `1px solid ${imeiCheckResult.valid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                color: imeiCheckResult.valid ? 'var(--primary)' : '#f87171',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem'
+              }}>
+                {imeiCheckResult.valid ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
+                <span>{imeiCheckResult.message}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Section 6: Price Valuation */}
+          <div className="form-group">
+            <label>Guaranteed Buyback Payout (₹) *</label>
             <input 
               type="number" 
               className="form-input" 
-              placeholder="e.g. 12500"
+              placeholder="e.g. 14500"
               value={productPrice}
               onChange={(e) => setProductPrice(e.target.value)}
               required 
             />
-            <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.2rem', display: 'block' }}>
-              Instant payment is processed to your UPI / Cash upon doorstep collection.
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'block' }}>
+              Instant cash or UPI payment is settled at your doorstep upon agent verification.
             </span>
           </div>
 
-          {/* Section 2: Choose Nearest Collection Agent */}
-          <div className="form-group" style={{ background: '#0d1424', border: '1px solid #1e293b', borderRadius: '8px', padding: '1rem', marginTop: '1.25rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#38bdf8', fontSize: '0.85rem' }}>
-              <Truck size={15} /> Select Nearest Collection Agent (Required)
+          {/* Section 7: Select Nearest Collection Agent */}
+          <div className="form-group" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--secondary)', fontSize: '0.85rem' }}>
+              <Truck size={15} /> Select Nearest Collection Depot Agent (Required)
             </label>
-            <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0.15rem 0 0.75rem' }}>
-              Choose your preferred depot agent for pickup coordination & verification:
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.15rem 0 0.75rem' }}>
+              Choose which depot center will dispatch an agent to your doorstep:
             </p>
 
             {agents.length > 0 ? (
@@ -316,29 +494,28 @@ const AddProduct = () => {
                       onClick={() => setSelectedAgent(ag.username)}
                       style={{
                         padding: '0.65rem 0.85rem',
-                        background: isSelected ? 'rgba(14, 165, 233, 0.12)' : 'var(--bg-secondary)',
-                        border: isSelected ? '1px solid #0ea5e9' : '1px solid var(--border)',
+                        background: isSelected ? 'var(--primary-light)' : 'var(--bg-card)',
+                        border: isSelected ? '1px solid var(--primary)' : '1px solid var(--border)',
                         borderRadius: '6px',
                         cursor: 'pointer',
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center',
-                        transition: 'all 0.15s ease'
+                        alignItems: 'center'
                       }}
                     >
                       <div>
-                        <div style={{ fontWeight: 600, color: isSelected ? '#38bdf8' : '#f8fafc', fontSize: '0.85rem' }}>
+                        <div style={{ fontWeight: 600, color: isSelected ? 'var(--primary)' : 'var(--text-main)', fontSize: '0.85rem' }}>
                           {ag.name}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.15rem' }}>
-                          <MapPin size={12} color="#10b981" /> {ag.address}
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.15rem' }}>
+                          <MapPin size={12} color="var(--primary)" /> {ag.address}
                         </div>
                       </div>
-                      <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#cbd5e1' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <Phone size={12} color="#34d399" /> {ag.mobile}
+                      <div style={{ textAlign: 'right', fontSize: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--primary)' }}>
+                          <Phone size={12} /> {ag.mobile}
                         </div>
-                        {isSelected && <span style={{ color: '#38bdf8', fontSize: '0.7rem', fontWeight: 700 }}>Selected</span>}
+                        {isSelected && <span style={{ color: 'var(--primary)', fontSize: '0.7rem', fontWeight: 700 }}>Selected</span>}
                       </div>
                     </div>
                   );
@@ -357,13 +534,13 @@ const AddProduct = () => {
             )}
           </div>
 
-          {/* Section 3: Pickup Instructions & Photo */}
+          {/* Section 8: Pickup Instructions & Photo */}
           <div className="form-group">
-            <label>Pickup Landmark / Instructions (Optional)</label>
+            <label>Pickup Landmark / Special Instructions (Optional)</label>
             <input 
               type="text" 
               className="form-input" 
-              placeholder="e.g. Near metro station, available after 4:00 PM"
+              placeholder="e.g. Near metro exit 2, available in evening"
               value={customerNotes}
               onChange={(e) => setCustomerNotes(e.target.value)}
             />
@@ -375,12 +552,12 @@ const AddProduct = () => {
               htmlFor="photo-upload"
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
-                cursor: 'pointer', border: '1px dashed #334155',
+                cursor: 'pointer', border: '1px dashed var(--border)',
                 borderRadius: '8px', padding: '0.75rem 1rem',
-                color: '#94a3b8', fontSize: '0.85rem', background: 'var(--bg-secondary)'
+                color: 'var(--text-muted)', fontSize: '0.85rem', background: 'var(--bg-secondary)'
               }}
             >
-              <Upload size={16} color="#10b981" />
+              <Upload size={16} color="var(--primary)" />
               {imageFile ? imageFile.name : 'Upload clear photo of the device (JPEG/PNG)'}
             </label>
             <input
@@ -406,7 +583,7 @@ const AddProduct = () => {
             disabled={loading}
           >
             <PlusCircle size={16} />
-            {loading ? 'Submitting Item...' : 'Confirm Doorstep Collection Order'}
+            {loading ? 'Submitting Order...' : 'Confirm Guaranteed Doorstep Buyback Order'}
           </button>
         </form>
       </div>

@@ -61,25 +61,15 @@ const AgentDashboard = () => {
           </div>
         </Link>
 
-        <Link to="/profile" className="role-btn-card">
-          <div style={{ background: 'rgba(148, 163, 184, 0.12)', padding: '0.65rem', borderRadius: '8px', color: '#cbd5e1', width: 'fit-content' }}>
-            <User size={26} />
+        <Link to="/update-status" className="role-btn-card">
+          <div style={{ background: 'rgba(16, 185, 129, 0.12)', padding: '0.65rem', borderRadius: '8px', color: '#10b981', width: 'fit-content' }}>
+            <CheckCircle2 size={26} />
           </div>
           <div>
-            <h3>Agent Profile & Depot Center</h3>
-            <p>View your depot address, contact number, and authorized collection credentials.</p>
+            <h3>Update Pickup & Payment Status</h3>
+            <p>Verify doorstep collections, update customer payout records, and confirm disposal route.</p>
           </div>
         </Link>
-
-        <div className="role-btn-card" onClick={logout} style={{ cursor: 'pointer', border: '1px dashed rgba(239, 68, 68, 0.3)' }}>
-          <div style={{ background: 'rgba(239, 68, 68, 0.12)', padding: '0.65rem', borderRadius: '8px', color: '#f87171', width: 'fit-content' }}>
-            <LogOut size={26} />
-          </div>
-          <div>
-            <h3 style={{ color: '#f87171' }}>End Session</h3>
-            <p>Safely log out of your collection agent portal.</p>
-          </div>
-        </div>
       </div>
     </div>
   );

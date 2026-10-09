@@ -170,26 +170,6 @@ const CustomerDashboard = ({ onOpenAiBot }) => {
             <p>Track live statuses (`Pending`, `Collected`, `Paid`) and contact your assigned agent.</p>
           </div>
         </Link>
-
-        <Link to="/profile" className="role-btn-card">
-          <div style={{ background: 'rgba(139, 92, 246, 0.12)', padding: '0.65rem', borderRadius: '8px', color: '#a78bfa', width: 'fit-content' }}>
-            <User size={26} />
-          </div>
-          <div>
-            <h3>My Profile & Address</h3>
-            <p>Verify your contact phone number and pickup address for doorstep collections.</p>
-          </div>
-        </Link>
-
-        <div className="role-btn-card" onClick={logout} style={{ cursor: 'pointer', border: '1px dashed rgba(239, 68, 68, 0.3)' }}>
-          <div style={{ background: 'rgba(239, 68, 68, 0.12)', padding: '0.65rem', borderRadius: '8px', color: '#f87171', width: 'fit-content' }}>
-            <LogOut size={26} />
-          </div>
-          <div>
-            <h3 style={{ color: '#f87171' }}>Log Out</h3>
-            <p>Safely sign out of your active customer session.</p>
-          </div>
-        </div>
       </div>
     </div>
   );
