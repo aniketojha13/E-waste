@@ -177,7 +177,7 @@ export const DeviceAiBotModal = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.15rem', fontWeight: 700 }}>
-                EcoBot AI Device Diagnosis & 3R Advisor
+                e-Amrit AI Device Diagnosis & 3R Advisor
               </h3>
               <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                 Hardware Valuation • Anti-Theft Security • 3R (Reduce, Reuse, Recycle) Buyback
@@ -593,7 +593,7 @@ export const DeviceAiBotModal = ({ isOpen, onClose }) => {
 
 export const AiBotLauncherButton = ({ onClick }) => {
   return (
-    <button className="ai-bot-fab" onClick={onClick} title="EcoBot AI Device Diagnosis">
+    <button className="ai-bot-fab" onClick={onClick} title="e-Amrit AI Device Diagnosis">
       <Bot size={18} />
       <span>Analyze Device</span>
     </button>

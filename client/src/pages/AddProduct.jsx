@@ -53,9 +53,11 @@ const AddProduct = () => {
   const [imeiOrSerial, setImeiOrSerial] = useState(aiState.imeiOrSerial || '');
   const [imeiCheckResult, setImeiCheckResult] = useState(null);
 
-  // Agents list for customer selection
+  // Agents list for customer selection & location/pincode filtering
   const [agents, setAgents] = useState([]);
-  const [selectedAgent, setSelectedAgent] = useState('agent1');
+  const [selectedAgent, setSelectedAgent] = useState('');
+  const [customerPincode, setCustomerPincode] = useState('');
+  const [customerCity, setCustomerCity] = useState('');
   const [customerNotes, setCustomerNotes] = useState('');
 
   const [imageFile, setImageFile] = useState(null);
@@ -72,15 +74,18 @@ const AddProduct = () => {
   useEffect(() => {
     API.get('/products/agents')
       .then(res => {
-        setAgents(res.data);
-        if (res.data.length > 0 && !selectedAgent) {
+        setAgents(res.data || []);
+        if (res.data && res.data.length > 0 && !selectedAgent) {
           setSelectedAgent(res.data[0].username);
         }
       })
       .catch(err => {
-        console.warn('Could not load agents list:', err.message);
+        // Agents fetch failing is non-critical — form can still be submitted
+        // without pre-selecting an agent. Don't show error to user here.
+        console.warn('Could not load agents list:', err?.response?.data?.message || err.message);
       });
   }, []);
+
 
   // Update default brand when category changes
   const handleCategoryChange = (newCat) => {
@@ -202,9 +207,15 @@ const AddProduct = () => {
       setTimeout(() => navigate('/my-products'), 1400);
     } catch (err) {
       setLoading(false);
-      setError(err.response?.data?.message || 'Failed to submit product.');
+      const status = err.response?.status;
+      if (status === 403 || status === 401) {
+        setError('Your session has expired or is invalid. Please log out and sign in again as a customer.');
+      } else {
+        setError(err.response?.data?.message || 'Failed to submit product. Please try again.');
+      }
     }
   };
+
 
   return (
     <div style={{ maxWidth: '680px', margin: '1.5rem auto' }}>
@@ -247,7 +258,7 @@ const AddProduct = () => {
             fontSize: '0.825rem',
             fontWeight: 600
           }}>
-            <Sparkles size={15} /> Pre-filled from EcoBot AI Diagnosis
+            <Sparkles size={15} /> Pre-filled from e-Amrit AI Diagnosis
           </div>
         )}
 
@@ -259,9 +270,18 @@ const AddProduct = () => {
         </p>
 
         {error && (
-          <div className="alert alert-error">
-            <AlertCircle size={16} />
-            <span>{error}</span>
+          <div className="alert alert-error" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertCircle size={16} />
+              <span>{error}</span>
+            </div>
+            {(error.includes('session') || error.includes('log out') || error.includes('sign in again')) && (
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                <a href="/login" onClick={() => { localStorage.removeItem('ewaste_user'); }} className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.3rem 0.7rem', color: 'var(--primary)' }}>
+                  Log Out &amp; Sign In Again
+                </a>
+              </div>
+            )}
           </div>
         )}
         {success && (
@@ -475,63 +495,140 @@ const AddProduct = () => {
             </span>
           </div>
 
-          {/* Section 7: Select Nearest Collection Agent */}
-          <div className="form-group" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '1rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--secondary)', fontSize: '0.85rem' }}>
-              <Truck size={15} /> Select Nearest Collection Depot Agent (Required)
-            </label>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.15rem 0 0.75rem' }}>
-              Choose which depot center will dispatch an agent to your doorstep:
+          {/* Section 7: Select Nearest Collection Agent with Location & Pincode Filter */}
+          <div className="form-group" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '1.15rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--secondary)', fontSize: '0.9rem', margin: 0 }}>
+                <Truck size={16} /> Doorstep Collection Agent Selection
+              </label>
+              <span style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 600, background: 'var(--primary-light)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                Location-Matched Logistics
+              </span>
+            </div>
+            
+            <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)', margin: '0 0 0.85rem' }}>
+              Enter your PIN code or city below to instantly display the nearest verified collection agents servicing your area:
             </p>
 
-            {agents.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {agents.map(ag => {
-                  const isSelected = selectedAgent === ag.username;
-                  return (
-                    <div 
-                      key={ag.username}
-                      onClick={() => setSelectedAgent(ag.username)}
-                      style={{
-                        padding: '0.65rem 0.85rem',
-                        background: isSelected ? 'var(--primary-light)' : 'var(--bg-card)',
-                        border: isSelected ? '1px solid var(--primary)' : '1px solid var(--border)',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: 600, color: isSelected ? 'var(--primary)' : 'var(--text-main)', fontSize: '0.85rem' }}>
-                          {ag.name}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.15rem' }}>
-                          <MapPin size={12} color="var(--primary)" /> {ag.address}
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right', fontSize: '0.75rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--primary)' }}>
-                          <Phone size={12} /> {ag.mobile}
-                        </div>
-                        {isSelected && <span style={{ color: 'var(--primary)', fontSize: '0.7rem', fontWeight: 700 }}>Selected</span>}
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* Pincode & City filter inputs */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.3rem' }}>
+                  Your Pickup PIN Code
+                </label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  className="form-input"
+                  placeholder="e.g. 110001, 560001"
+                  value={customerPincode}
+                  onChange={(e) => setCustomerPincode(e.target.value.replace(/[^0-9]/g, ''))}
+                  style={{ fontSize: '0.825rem', padding: '0.55rem 0.75rem' }}
+                />
               </div>
-            ) : (
-              <select 
-                value={selectedAgent} 
-                onChange={(e) => setSelectedAgent(e.target.value)}
-                className="form-input"
-              >
-                <option value="agent1">John Agent (Downtown Center - 9876543210)</option>
-                <option value="agent2">Rajesh Sharma (North Hub - 9811223344)</option>
-                <option value="agent3">Amit Patel (South Hub - 9822334455)</option>
-              </select>
-            )}
+
+              <div>
+                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.3rem' }}>
+                  City / Locality Search
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Delhi, Sarita Vihar, North Hub"
+                  value={customerCity}
+                  onChange={(e) => setCustomerCity(e.target.value)}
+                  style={{ fontSize: '0.825rem', padding: '0.55rem 0.75rem' }}
+                />
+              </div>
+            </div>
+
+            {/* Agent cards filtered by location / pincode */}
+            {(() => {
+              const filterQuery = (customerCity || customerPincode || '').toLowerCase().trim();
+              const filteredAgents = filterQuery
+                ? agents.filter(ag => 
+                    (ag.address || '').toLowerCase().includes(filterQuery) ||
+                    (ag.name || '').toLowerCase().includes(filterQuery) ||
+                    (ag.username || '').toLowerCase().includes(filterQuery)
+                  )
+                : agents;
+
+              if (agents.length === 0) {
+                return (
+                  <select 
+                    value={selectedAgent} 
+                    onChange={(e) => setSelectedAgent(e.target.value)}
+                    className="form-input"
+                  >
+                    <option value="agent1">John Agent (Downtown Center - 9876543210)</option>
+                    <option value="agent2">Rajesh Sharma (North Hub - 9811223344)</option>
+                    <option value="agent3">Amit Patel (South Hub - 9822334455)</option>
+                  </select>
+                );
+              }
+
+              if (filteredAgents.length === 0) {
+                return (
+                  <div style={{ padding: '0.85rem', background: 'var(--bg-card)', border: '1px dashed var(--border)', borderRadius: '6px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    No specific agent found for "{filterQuery}". Showing all available hubs below:
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => { setCustomerPincode(''); setCustomerCity(''); }}
+                        className="btn btn-outline" 
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}
+                      >
+                        Reset Filter
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {filteredAgents.map(ag => {
+                    const isSelected = selectedAgent === ag.username;
+                    return (
+                      <div 
+                        key={ag.username}
+                        onClick={() => setSelectedAgent(ag.username)}
+                        style={{
+                          padding: '0.75rem 0.95rem',
+                          background: isSelected ? 'var(--primary-light)' : 'var(--bg-card)',
+                          border: isSelected ? '1px solid var(--primary)' : '1px solid var(--border)',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 600, color: isSelected ? 'var(--primary)' : 'var(--text-main)', fontSize: '0.875rem' }}>
+                            {ag.name} <span style={{ fontSize: '0.75rem', color: 'var(--secondary)', fontFamily: 'monospace' }}>@{ag.username}</span>
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem' }}>
+                            <MapPin size={12} color="var(--primary)" /> {ag.address || 'Central Depot Center'}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right', fontSize: '0.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--primary)', fontWeight: 600 }}>
+                            <Phone size={12} /> {ag.mobile || 'Contact Support'}
+                          </div>
+                          {isSelected && (
+                            <span style={{ color: 'var(--primary)', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>
+                              ✓ Selected Depot
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Section 8: Pickup Instructions & Photo */}

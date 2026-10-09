@@ -175,9 +175,70 @@ router.get('/my-products', verifyToken, async (req, res) => {
   }
 });
 
+// ─── GET /api/products/agent-orders ──────────────────────────────────────────
+// Orders assigned to the currently logged-in agent only
+router.get('/agent-orders', verifyToken, verifyRole(['agent']), async (req, res) => {
+  try {
+    const agentUsername = req.user.username;
+    const allProducts = await listAll();
+    const assigned = allProducts.filter(p => p.assignedAgent === agentUsername);
+
+    const payments = await getByPids(assigned.map(p => p.pid));
+    const paymentMap = {};
+    payments.forEach(p => { paymentMap[p.pid] = p.status; });
+
+    // Get customer details for each order
+    const usernames = [...new Set(assigned.map(p => p.username))];
+    const userRecords = await Promise.all(usernames.map(u => getByUsername(u)));
+    const userMap = {};
+    userRecords.forEach(u => {
+      if (u) {
+        userMap[u.username] = {
+          name: u.name,
+          email: u.email,
+          mobile: u.mobile || 'Not provided',
+          address: u.address || 'Not provided'
+        };
+      }
+    });
+
+    const results = await Promise.all(assigned.map(async p => ({
+      pid: p.pid,
+      username: p.username,
+      productName: p.productName,
+      productAge: p.productAge,
+      productPrice: p.productPrice,
+      category: p.category,
+      brand: p.brand,
+      model: p.model,
+      yearOfManufacture: p.yearOfManufacture,
+      condition: p.condition,
+      specs: p.specs,
+      ram: p.ram,
+      storage: p.storage,
+      imeiOrSerial: p.imeiOrSerial,
+      isVerifiedClean: p.isVerifiedClean,
+      accessories: p.accessories,
+      assignedAgent: p.assignedAgent,
+      customerNotes: p.customerNotes,
+      customerDetails: userMap[p.username] || null,
+      customerName: userMap[p.username]?.name || p.username,
+      customerMobile: userMap[p.username]?.mobile || null,
+      customerAddress: userMap[p.username]?.address || null,
+      imageUrl: p.imageKey ? await getPresignedGetUrl(p.imageKey) : null,
+      status: paymentMap[p.pid] || 'Pending',
+      createdAt: p.createdAt
+    })));
+
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // ─── GET /api/products ────────────────────────────────────────────────────────
-// All products (Agent & Admin) with customer contact info
-router.get('/', verifyToken, verifyRole(['agent', 'admin']), async (req, res) => {
+// All products (Admin only) with customer contact info
+router.get('/', verifyToken, verifyRole(['admin']), async (req, res) => {
   try {
     const products = await listAll();
     const payments = await getByPids(products.map(p => p.pid));
@@ -226,6 +287,49 @@ router.get('/', verifyToken, verifyRole(['agent', 'admin']), async (req, res) =>
     })));
 
     res.json(results);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ─── PUT /api/products/:pid/assign-agent ─────────────────────────────────────
+// Admin re-assigns / transfers order from one collection agent to another
+router.put('/:pid/assign-agent', verifyToken, verifyRole(['admin']), async (req, res) => {
+  try {
+    const { pid } = req.params;
+    const { newAgentUsername } = req.body;
+
+    if (!newAgentUsername) {
+      return res.status(400).json({ message: 'New agent username is required.' });
+    }
+
+    const [product, newAgent] = await Promise.all([
+      getByPid(pid),
+      getByUsername(newAgentUsername.toLowerCase())
+    ]);
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product order not found.' });
+    }
+
+    if (!newAgent || newAgent.role !== 'agent') {
+      return res.status(400).json({ message: 'Target user is not a registered collection agent.' });
+    }
+
+    const previousAgent = product.assignedAgent;
+    const updatedProduct = {
+      ...product,
+      assignedAgent: newAgentUsername.toLowerCase(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await putProduct(updatedProduct);
+
+    res.json({
+      success: true,
+      message: `Order ${pid} transferred successfully from @${previousAgent || 'unassigned'} to agent @${newAgentUsername} (${newAgent.name}).`,
+      product: updatedProduct
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

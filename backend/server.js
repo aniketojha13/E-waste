@@ -16,10 +16,11 @@ app.use(['/api/products', '/products'], require('./routes/products'));
 app.use(['/api/payments', '/payments'], require('./routes/payments'));
 app.use(['/api/admin', '/admin'], require('./routes/admin'));
 app.use(['/api/uploads', '/uploads'], require('./routes/uploads'));
+app.use(['/api/public', '/public'], require('./routes/public'));
 
 // Healthcheck
 app.get(['/api/health', '/health'], (req, res) => {
-  res.json({ status: 'OK', message: 'E-waste Management Backend API is running' });
+  res.json({ status: 'OK', message: 'e-Amrit E-Waste Management Backend API is running' });
 });
 
 // Export app for Lambda and Vercel

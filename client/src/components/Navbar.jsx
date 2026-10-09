@@ -41,8 +41,7 @@ const Navbar = ({ onOpenAiBot }) => {
         <div style={{ background: 'var(--primary)', color: '#ffffff', padding: '0.35rem', borderRadius: '6px', display: 'flex' }}>
           <Recycle size={20} />
         </div>
-        <span>EcoCycle <span style={{ color: 'var(--primary)', fontWeight: 600 }}>E-Waste</span></span>
-        <span className="nav-brand-badge">Hub</span>
+        <span>e-Amrit</span>
       </Link>
 
       <div className="nav-links">
@@ -115,24 +114,37 @@ const Navbar = ({ onOpenAiBot }) => {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <Link to="/login" className="btn btn-primary" style={{ padding: '0.45rem 1rem', fontSize: '0.825rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <Link to="/login" className="btn btn-primary" style={{ padding: '0.45rem 0.9rem', fontSize: '0.825rem' }}>
               <LogIn size={14} /> Customer Sign In
             </Link>
 
-            {/* Admin and Collector login option in corner */}
             <Link 
-              to="/login?role=agent" 
+              to="/login/agent" 
               className="btn btn-outline" 
               style={{ 
-                padding: '0.45rem 0.85rem', 
+                padding: '0.45rem 0.75rem', 
                 fontSize: '0.8rem',
                 color: 'var(--secondary)',
                 borderColor: 'var(--border)'
               }}
-              title="Admin and Collection Agent Sign In / Login"
+              title="Collection Agent Portal Sign In"
             >
-              <ShieldCheck size={14} /> Admin & Collector Login
+              <Truck size={14} /> Agent Login
+            </Link>
+
+            <Link 
+              to="/login/admin" 
+              className="btn btn-outline" 
+              style={{ 
+                padding: '0.45rem 0.75rem', 
+                fontSize: '0.8rem',
+                color: '#a78bfa',
+                borderColor: 'var(--border)'
+              }}
+              title="System Administrator Sign In"
+            >
+              <ShieldCheck size={14} /> Admin
             </Link>
           </div>
         )}

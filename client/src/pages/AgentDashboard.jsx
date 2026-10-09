@@ -27,22 +27,33 @@ const AgentDashboard = () => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [actionSuccess, setActionSuccess] = useState('');
   const [actionError, setActionError] = useState('');
+  const [fetchError, setFetchError] = useState('');
   const [updatingPid, setUpdatingPid] = useState(null);
 
   const fetchOrders = async () => {
     setLoading(true);
+    setFetchError('');
     try {
-      const res = await API.get('/products');
+      // Use /agent-orders which returns only orders assigned to this agent
+      const res = await API.get('/products/agent-orders');
       setProducts(res.data || []);
       setLoading(false);
     } catch (err) {
       setLoading(false);
+      if (err.response?.status === 403) {
+        setFetchError('Access denied. Please make sure you are logged in as a Collection Agent.');
+      } else if (err.response?.status === 401) {
+        setFetchError('Session expired. Please log in again.');
+      } else {
+        setFetchError(err.response?.data?.message || 'Failed to load assigned orders. Please try refreshing.');
+      }
     }
   };
 
   useEffect(() => {
     fetchOrders();
   }, []);
+
 
   const handleUpdateStatus = async (pid, newStatus) => {
     setUpdatingPid(pid);
@@ -150,6 +161,17 @@ const AgentDashboard = () => {
           <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
             <AlertCircle size={16} />
             <span>{actionError}</span>
+          </div>
+        )}
+        {fetchError && (
+          <div className="alert alert-error" style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertCircle size={16} />
+              {fetchError}
+            </span>
+            <button onClick={fetchOrders} className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.65rem', marginLeft: '1rem' }}>
+              Retry
+            </button>
           </div>
         )}
 

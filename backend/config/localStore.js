@@ -51,12 +51,12 @@ function loadData() {
   try {
     if (fs.existsSync(DATA_FILE)) {
       const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-      // Ensure all initial agents are present if users array exists
+      // Ensure at least one admin account exists so administrator can always log in
       if (Array.isArray(data['ewaste-users'])) {
-        for (const u of INITIAL_USERS) {
-          if (!data['ewaste-users'].some(x => x.username.toLowerCase() === u.username.toLowerCase())) {
-            data['ewaste-users'].push(u);
-          }
+        const hasAdmin = data['ewaste-users'].some(x => x.role === 'admin');
+        if (!hasAdmin) {
+          data['ewaste-users'].push(INITIAL_USERS[0]);
+          saveData(data);
         }
       }
       return data;

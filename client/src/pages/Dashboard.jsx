@@ -14,7 +14,8 @@ import {
   ExternalLink,
   Recycle,
   RotateCcw,
-  BadgeCheck
+  BadgeCheck,
+  Briefcase
 } from 'lucide-react';
 
 const Dashboard = ({ onOpenAiBot }) => {
@@ -59,7 +60,7 @@ const Dashboard = ({ onOpenAiBot }) => {
               Go to My {roleTitle} Dashboard <ArrowRight size={16} />
             </Link>
             <button onClick={onOpenAiBot} className="btn btn-outline">
-              <Bot size={16} /> EcoBot Device Analyzer
+              <Bot size={16} /> e-Amrit Device Analyzer
             </button>
           </div>
         </div>
@@ -188,9 +189,27 @@ const Dashboard = ({ onOpenAiBot }) => {
             <h3>Collection Agent</h3>
             <p>Access assigned doorstep pickup orders, inspect customer location details, and process collection verification on site.</p>
           </div>
-          <Link to="/login?role=agent" className="btn btn-outline" style={{ marginTop: 'auto', width: '100%' }}>
-            Agent Sign In
-          </Link>
+          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+            <Link to="/login/agent" className="btn btn-outline" style={{ width: '100%' }}>
+              Agent Sign In
+            </Link>
+            <Link 
+              to="/apply-as-agent" 
+              style={{ 
+                fontSize: '0.78rem', 
+                color: 'var(--secondary)', 
+                textAlign: 'center', 
+                fontWeight: 600, 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '0.35rem',
+                padding: '0.2rem 0'
+              }}
+            >
+              <Briefcase size={12} /> Apply to Join Fleet
+            </Link>
+          </div>
         </div>
 
         {/* Admin Portal */}
@@ -205,7 +224,7 @@ const Dashboard = ({ onOpenAiBot }) => {
             <h3>Admin Portal</h3>
             <p>Oversee registered customer accounts, manage verified agent rosters, track ledger transactions, and monitor platform metrics.</p>
           </div>
-          <Link to="/login?role=admin" className="btn btn-outline" style={{ marginTop: 'auto', width: '100%' }}>
+          <Link to="/login/admin" className="btn btn-outline" style={{ marginTop: 'auto', width: '100%' }}>
             Admin Sign In
           </Link>
         </div>

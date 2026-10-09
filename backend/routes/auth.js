@@ -28,6 +28,54 @@ function safeUser(user) {
   return rest;
 }
 
+// ─── POST /auth/send-otp ─────────────────────────────────────────────────────
+// Dispatches 6-digit verification code to the requested email address
+router.post('/send-otp', async (req, res) => {
+  try {
+    const { email, name, purpose } = req.body;
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ message: 'Valid email address is required.' });
+    }
+
+    const { sendOtpEmail } = require('../services/emailService');
+    const result = await sendOtpEmail({
+      to: email.trim().toLowerCase(),
+      name: name || 'User',
+      purpose: purpose || 'Account Verification'
+    });
+
+    res.json({
+      success: true,
+      message: `Verification code dispatched to ${email}. Please check your inbox.`,
+      // For testing/preview if live SMTP is not active, also send testPreview
+      testPreview: process.env.SMTP_HOST ? undefined : result.otp
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to send verification code: ' + error.message });
+  }
+});
+
+// ─── POST /auth/verify-otp ───────────────────────────────────────────────────
+// Validates whether the submitted OTP matches for the given email
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP code are required.' });
+    }
+
+    const { verifyOtp } = require('../services/emailService');
+    const check = verifyOtp(email, otp);
+    if (!check.valid) {
+      return res.status(400).json({ message: check.message });
+    }
+
+    res.json({ success: true, message: 'Email verified successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // ─── POST /auth/register ─────────────────────────────────────────────────────
 
 router.post('/register', async (req, res) => {
@@ -67,6 +115,15 @@ router.post('/register', async (req, res) => {
     await putUser(user);
 
     const token = signToken(user);
+
+    // Send real-time welcome email confirmation
+    const { sendWelcomeEmail } = require('../services/emailService');
+    sendWelcomeEmail({
+      to: user.email,
+      name: user.name,
+      username: user.username,
+      role: user.role
+    }).catch(e => console.warn('Welcome email error:', e.message));
 
     res.status(201).json({
       message: 'Account created successfully',

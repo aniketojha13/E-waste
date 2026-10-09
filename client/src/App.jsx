@@ -20,6 +20,10 @@ import CustomerList from './pages/CustomerList';
 import AgentList from './pages/AgentList';
 import Profile from './pages/Profile';
 
+import AdminLogin from './pages/AdminLogin';
+import AgentLogin from './pages/AgentLogin';
+import ApplyAsAgent from './pages/ApplyAsAgent';
+
 function AppContent() {
   const [isAiBotOpen, setIsAiBotOpen] = useState(false);
 
@@ -34,6 +38,9 @@ function AppContent() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/signup" element={<Auth />} />
+          <Route path="/login/admin" element={<AdminLogin />} />
+          <Route path="/login/agent" element={<AgentLogin />} />
+          <Route path="/apply-as-agent" element={<ApplyAsAgent />} />
 
           {/* Protected Shared Routes */}
           <Route element={<ProtectedRoute />}>

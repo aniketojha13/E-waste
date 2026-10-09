@@ -10,13 +10,36 @@ export const AuthProvider = ({ children }) => {
     try {
       const parsed = JSON.parse(saved);
       // Migrate old nested format { message, token, user: { ... } } if present
+      let flat;
       if (parsed && parsed.user && typeof parsed.user === 'object') {
-        return {
+        flat = {
           ...parsed.user,
           token: parsed.token || parsed.user.token
         };
+      } else {
+        flat = parsed;
       }
-      return parsed;
+      // Validate token expiry client-side (JWT payload is base64 encoded)
+      if (flat?.token) {
+        try {
+          const payloadB64 = flat.token.split('.')[1];
+          const payload = JSON.parse(atob(payloadB64));
+          if (payload.exp && payload.exp * 1000 < Date.now()) {
+            // Token is expired — clear it
+            localStorage.removeItem('ewaste_user');
+            return null;
+          }
+          // Ensure role is present in the stored user
+          if (payload.role && !flat.role) {
+            flat.role = payload.role;
+          }
+        } catch {
+          // If we can't parse the JWT, clear the session
+          localStorage.removeItem('ewaste_user');
+          return null;
+        }
+      }
+      return flat;
     } catch {
       return null;
     }
@@ -30,6 +53,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('ewaste_user');
     }
   }, [user]);
+
 
   const login = async (username, password, role) => {
     setLoading(true);

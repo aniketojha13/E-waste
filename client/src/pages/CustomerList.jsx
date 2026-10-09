@@ -40,11 +40,16 @@ const CustomerList = () => {
     setError('');
     try {
       const res = await API.get('/admin/customers');
-      setCustomers(res.data);
+      setCustomers(res.data || []);
       setLoading(false);
     } catch (err) {
       setLoading(false);
-      setError('Failed to fetch customers list.');
+      const status = err.response?.status;
+      if (status === 401 || status === 403) {
+        setError('Admin session expired or access restricted. Please sign in as Administrator.');
+      } else {
+        setError(err.response?.data?.message || 'Failed to fetch registered customers list.');
+      }
     }
   };
 

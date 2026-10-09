@@ -1,31 +1,37 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { 
   LogIn, 
   UserPlus, 
-  ShieldCheck, 
-  Truck, 
   ArrowLeft, 
   CheckCircle2, 
   AlertCircle,
-  KeyRound
+  Sun,
+  Moon
 } from 'lucide-react';
 
 const Auth = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { login, signup, loading, user } = useContext(AuthContext);
+  const { theme, toggleTheme } = useTheme();
 
   const searchParams = new URLSearchParams(location.search);
   const requestedRole = searchParams.get('role');
   const isSignupPath = location.pathname === '/signup' || searchParams.get('tab') === 'register';
 
+  // Dedicated routes for Admin and Agent login
+  useEffect(() => {
+    if (requestedRole === 'admin') {
+      navigate('/login/admin', { replace: true });
+    } else if (requestedRole === 'agent') {
+      navigate('/login/agent', { replace: true });
+    }
+  }, [requestedRole, navigate]);
+
   const [activeTab, setActiveTab] = useState(isSignupPath ? 'register' : 'login');
-  const [isAdminCollectorMode, setIsAdminCollectorMode] = useState(
-    requestedRole === 'admin' || requestedRole === 'agent'
-  );
-  const [staffRole, setStaffRole] = useState(requestedRole === 'admin' ? 'admin' : 'agent');
 
   const [loginData, setLoginData] = useState({
     username: '',
@@ -64,8 +70,7 @@ const Auth = () => {
       return;
     }
 
-    const targetRole = isAdminCollectorMode ? staffRole : 'customer';
-    const res = await login(loginData.username, loginData.password, targetRole);
+    const res = await login(loginData.username, loginData.password, 'customer');
     if (!res.success) {
       setError(res.message);
     } else {
@@ -97,51 +102,35 @@ const Auth = () => {
     }
   };
 
-  const fillQuickCredentials = (u, p, role) => {
-    setIsAdminCollectorMode(true);
-    setStaffRole(role);
-    setLoginData({ username: u, password: p });
-    setActiveTab('login');
-  };
-
   return (
-    <div style={{ maxWidth: '480px', margin: '2rem auto' }}>
-      {/* Top Header Switch */}
+    <div style={{ maxWidth: '480px', margin: '2rem auto', padding: '0 1rem' }}>
+      {/* Top Bar: Back & Theme Toggle Switch */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-        <button onClick={() => navigate('/')} className="btn btn-outline" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>
-          <ArrowLeft size={14} /> Back
+        <button onClick={() => navigate('/')} className="btn btn-outline" style={{ padding: '0.4rem 0.85rem', fontSize: '0.825rem' }}>
+          <ArrowLeft size={14} /> Back to Home
         </button>
 
-        {/* Right Corner Button: Admin & Collector Login Toggle */}
+        {/* Dedicated corner Light / Dark mode toggle switch */}
         <button
-          onClick={() => {
-            setIsAdminCollectorMode(!isAdminCollectorMode);
-            setActiveTab('login');
-            setError('');
-          }}
-          className="btn btn-outline"
-          style={{
-            fontSize: '0.8rem',
-            padding: '0.35rem 0.75rem',
-            color: isAdminCollectorMode ? '#38bdf8' : '#94a3b8',
-            borderColor: isAdminCollectorMode ? '#0284c7' : '#1e293b'
-          }}
+          type="button"
+          onClick={toggleTheme}
+          className="theme-toggle-btn"
+          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+          aria-label="Toggle Theme"
+          style={{ width: '36px', height: '36px' }}
         >
-          <ShieldCheck size={14} color={isAdminCollectorMode ? '#38bdf8' : '#94a3b8'} />
-          <span>{isAdminCollectorMode ? 'Switch to Customer Login' : 'Admin & Collector Login'}</span>
+          {theme === 'dark' ? <Sun size={16} color="#fbbf24" /> : <Moon size={16} color="#6366f1" />}
         </button>
       </div>
 
       <div className="card">
         {/* Title */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f8fafc', marginBottom: '0.25rem' }}>
-            {isAdminCollectorMode ? 'Admin & Collector Portal' : 'Customer Account Access'}
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+            Customer Account Access
           </h2>
-          <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-            {isAdminCollectorMode 
-              ? 'Authorized sign-in for Administrators and Field Collection Agents' 
-              : 'Sign in to list electronics for doorstep collection & payouts'}
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+            Sign in to list electronics for doorstep collection & instant buyback payouts
           </p>
         </div>
 
@@ -158,46 +147,25 @@ const Auth = () => {
           </div>
         )}
 
-        {/* Tab Selector */}
-        {!isAdminCollectorMode ? (
-          <div className="auth-tabs">
-            <button
-              type="button"
-              className={`auth-tab ${activeTab === 'login' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('login'); setError(''); }}
-            >
-              <LogIn size={14} style={{ display: 'inline', marginRight: '5px', verticalAlign: '-1px' }} />
-              Sign In
-            </button>
-            <button
-              type="button"
-              className={`auth-tab ${activeTab === 'register' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('register'); setError(''); }}
-            >
-              <UserPlus size={14} style={{ display: 'inline', marginRight: '5px', verticalAlign: '-1px' }} />
-              Create Account
-            </button>
-          </div>
-        ) : (
-          <div className="auth-tabs">
-            <button
-              type="button"
-              className={`auth-tab ${staffRole === 'admin' ? 'active' : ''}`}
-              onClick={() => { setStaffRole('admin'); setError(''); }}
-            >
-              <ShieldCheck size={14} style={{ display: 'inline', marginRight: '5px', verticalAlign: '-1px' }} />
-              Administrator
-            </button>
-            <button
-              type="button"
-              className={`auth-tab ${staffRole === 'agent' ? 'active' : ''}`}
-              onClick={() => { setStaffRole('agent'); setError(''); }}
-            >
-              <Truck size={14} style={{ display: 'inline', marginRight: '5px', verticalAlign: '-1px' }} />
-              Collection Agent (Collector)
-            </button>
-          </div>
-        )}
+        {/* Tab Selector: Sign In vs Create Account */}
+        <div className="auth-tabs">
+          <button
+            type="button"
+            className={`auth-tab ${activeTab === 'login' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('login'); setError(''); }}
+          >
+            <LogIn size={14} style={{ display: 'inline', marginRight: '5px', verticalAlign: '-1px' }} />
+            Sign In
+          </button>
+          <button
+            type="button"
+            className={`auth-tab ${activeTab === 'register' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('register'); setError(''); }}
+          >
+            <UserPlus size={14} style={{ display: 'inline', marginRight: '5px', verticalAlign: '-1px' }} />
+            Create Account
+          </button>
+        </div>
 
         {/* SIGN IN FORM */}
         {activeTab === 'login' && (
@@ -207,7 +175,7 @@ const Auth = () => {
               <input
                 type="text"
                 className="form-input"
-                placeholder={isAdminCollectorMode ? (staffRole === 'admin' ? 'admin' : 'agent1') : 'Enter your username'}
+                placeholder="Enter your customer username"
                 value={loginData.username}
                 onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
                 required
@@ -219,7 +187,7 @@ const Auth = () => {
               <input
                 type="password"
                 className="form-input"
-                placeholder="Enter password"
+                placeholder="Enter your account password"
                 value={loginData.password}
                 onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                 required
@@ -228,58 +196,25 @@ const Auth = () => {
 
             <button
               type="submit"
-              className={`btn ${isAdminCollectorMode && staffRole === 'admin' ? 'btn-secondary' : 'btn-primary'}`}
-              style={{ width: '100%', marginTop: '0.4rem', padding: '0.75rem' }}
+              className="btn btn-primary"
+              style={{ width: '100%', marginTop: '0.5rem', padding: '0.75rem' }}
               disabled={loading}
             >
               <LogIn size={16} />
-              {loading ? 'Verifying...' : `Sign In as ${isAdminCollectorMode ? (staffRole === 'admin' ? 'Administrator' : 'Collection Agent') : 'Customer'}`}
+              {loading ? 'Verifying...' : 'Sign In as Customer'}
             </button>
-
-            {/* Quick Demo Test Buttons */}
-            {isAdminCollectorMode && (
-              <div style={{
-                marginTop: '1.25rem',
-                padding: '0.85rem 1rem',
-                background: 'var(--bg-secondary)',
-                borderRadius: '8px',
-                border: '1px solid var(--border)'
-              }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <KeyRound size={13} color="var(--primary)" /> Fast Demo Logins
-                </span>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => fillQuickCredentials('admin', 'admin123', 'admin')}
-                    className="btn btn-outline"
-                    style={{ flex: 1, padding: '0.35rem', fontSize: '0.75rem' }}
-                  >
-                    Admin (admin / admin123)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fillQuickCredentials('agent1', 'agent123', 'agent')}
-                    className="btn btn-outline"
-                    style={{ flex: 1, padding: '0.35rem', fontSize: '0.75rem' }}
-                  >
-                    Collector (agent1 / agent123)
-                  </button>
-                </div>
-              </div>
-            )}
           </form>
         )}
 
         {/* CUSTOMER REGISTRATION FORM */}
-        {activeTab === 'register' && !isAdminCollectorMode && (
+        {activeTab === 'register' && (
           <form onSubmit={handleRegisterSubmit}>
             <div className="form-group">
               <label>Full Name *</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Alice Smith"
+                placeholder="Enter your full name"
                 value={registerData.name}
                 onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                 required
@@ -292,7 +227,7 @@ const Auth = () => {
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Username"
+                  placeholder="Choose a username"
                   value={registerData.username}
                   onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
                   required
@@ -300,11 +235,11 @@ const Auth = () => {
               </div>
 
               <div className="form-group">
-                <label>Email *</label>
+                <label>Email Address *</label>
                 <input
                   type="email"
                   className="form-input"
-                  placeholder="name@email.com"
+                  placeholder="Enter your email address"
                   value={registerData.email}
                   onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                   required
@@ -318,7 +253,7 @@ const Auth = () => {
                 <input
                   type="password"
                   className="form-input"
-                  placeholder="Password"
+                  placeholder="Create password (min 6 characters)"
                   value={registerData.password}
                   onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                   required
@@ -330,7 +265,7 @@ const Auth = () => {
                 <input
                   type="tel"
                   className="form-input"
-                  placeholder="10-digit mobile"
+                  placeholder="Mobile number"
                   value={registerData.mobile}
                   onChange={(e) => setRegisterData({ ...registerData, mobile: e.target.value })}
                 />
@@ -342,7 +277,7 @@ const Auth = () => {
               <textarea
                 className="form-input"
                 rows={2}
-                placeholder="Full address for collection agent pickup"
+                placeholder="Street address, house no., city, pincode"
                 value={registerData.address}
                 onChange={(e) => setRegisterData({ ...registerData, address: e.target.value })}
               />
@@ -351,7 +286,7 @@ const Auth = () => {
             <button
               type="submit"
               className="btn btn-primary"
-              style={{ width: '100%', marginTop: '0.4rem', padding: '0.75rem' }}
+              style={{ width: '100%', marginTop: '0.5rem', padding: '0.75rem' }}
               disabled={loading}
             >
               <UserPlus size={16} />
@@ -359,6 +294,19 @@ const Auth = () => {
             </button>
           </form>
         )}
+
+        {/* Clean Footer links for Staff redirection */}
+        <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          <span>Staff Member?</span>
+          <div style={{ display: 'flex', gap: '0.85rem' }}>
+            <Link to="/login/agent" style={{ color: 'var(--secondary)', textDecoration: 'none', fontWeight: 600 }}>
+              Agent Sign In →
+            </Link>
+            <Link to="/login/admin" style={{ color: '#a78bfa', textDecoration: 'none', fontWeight: 600 }}>
+              Admin Sign In →
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

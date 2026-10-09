@@ -39,7 +39,6 @@ const AgentList = () => {
     address: ''
   });
 
-  // Edit form data
   const [editForm, setEditForm] = useState({
     name: '',
     email: '',
@@ -48,16 +47,59 @@ const AgentList = () => {
     password: ''
   });
 
+  // Approved agent notice state
+  const [approvedNotice, setApprovedNotice] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('ewaste_recently_approved_agent') || 'null');
+    } catch {
+      return null;
+    }
+  });
+
+  const dismissApprovedNotice = () => {
+    localStorage.removeItem('ewaste_recently_approved_agent');
+    setApprovedNotice(null);
+  };
+
+  const handlePreFillFromApproved = () => {
+    if (!approvedNotice) return;
+    setNewAgent({
+      name: approvedNotice.name || '',
+      username: approvedNotice.username || '',
+      email: approvedNotice.email || '',
+      password: '',
+      mobile: approvedNotice.phone || '',
+      address: approvedNotice.city || ''
+    });
+    setShowAddModal(true);
+  };
+
   const fetchAgents = async () => {
     setLoading(true);
     setError('');
     try {
       const res = await API.get('/admin/agents');
-      setAgents(res.data);
+      setAgents(res.data || []);
       setLoading(false);
     } catch (err) {
+      console.warn('Primary /admin/agents fetch failed, trying fallback:', err);
+      try {
+        const fallback = await API.get('/products/agents');
+        if (fallback.data && fallback.data.length > 0) {
+          setAgents(fallback.data);
+          setLoading(false);
+          return;
+        }
+      } catch (fallbackErr) {
+        console.warn('Fallback agents fetch failed:', fallbackErr);
+      }
       setLoading(false);
-      setError('Failed to fetch agents list.');
+      const status = err.response?.status;
+      if (status === 401 || status === 403) {
+        setError('Admin session expired or access restricted. Please sign in as Administrator.');
+      } else {
+        setError(err.response?.data?.message || 'Failed to fetch collection agents. Please click Refresh.');
+      }
     }
   };
 
@@ -77,10 +119,11 @@ const AgentList = () => {
         createdAt: new Date().toISOString() 
       };
       // Real-time immediate update
-      setAgents(prev => [createdAgent, ...prev]);
-      setSuccess(`Collection agent @${newAgent.username} registered successfully!`);
+      setAgents(prev => [createdAgent, ...prev.filter(a => a.username !== createdAgent.username)]);
+      setSuccess(`Collection agent @${newAgent.username} registered & configured successfully! Credentials dispatched.`);
       setShowAddModal(false);
       setNewAgent({ name: '', username: '', email: '', password: '', mobile: '', address: '' });
+      dismissApprovedNotice();
       fetchAgents();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create agent.');
@@ -166,6 +209,56 @@ const AgentList = () => {
           </div>
           <span className="role-badge">Admin Authorization Control</span>
         </div>
+
+        {/* Approved Agent Action Notice */}
+        {approvedNotice && (
+          <div style={{
+            marginBottom: '1.25rem',
+            padding: '1rem 1.25rem',
+            background: 'rgba(16, 185, 129, 0.08)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            borderRadius: 'var(--radius-sm)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            animation: 'fadeIn 0.3s ease'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <div style={{ background: 'var(--primary)', color: '#ffffff', borderRadius: '50%', padding: '0.35rem', display: 'flex' }}>
+                <CheckCircle2 size={16} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                  New Approved Agent Ready for Roster: {approvedNotice.name} (@{approvedNotice.username})
+                </div>
+                <div style={{ fontSize: '0.775rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>
+                  This candidate was approved via recruitment queue. Click below to verify or configure custom credentials and depot address.
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={handlePreFillFromApproved}
+                className="btn btn-primary"
+                style={{ fontSize: '0.775rem', padding: '0.35rem 0.8rem' }}
+              >
+                <UserPlus size={13} /> Add & Configure Agent
+              </button>
+              <button
+                type="button"
+                onClick={dismissApprovedNotice}
+                className="btn btn-outline"
+                style={{ padding: '0.35rem 0.5rem', fontSize: '0.775rem', border: 'none' }}
+                title="Dismiss Notice"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && <div className="alert alert-error">{error}</div>}
         {success && <div className="alert alert-success">{success}</div>}
