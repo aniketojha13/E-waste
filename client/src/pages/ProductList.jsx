@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import API from '../services/api';
+import { ShieldCheck } from 'lucide-react';
+// import { ShieldCheck } from '@phosphor-icons/react';
+// import { IconShieldCheck as ShieldCheck } from '@tabler/icons-react';
+
 import { AuthContext } from '../context/AuthContext';
 import { 
   Package, 
@@ -102,11 +106,11 @@ const ProductList = () => {
         {/* Header and Search */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
-            <h2 style={{ color: '#f8fafc', fontSize: '1.4rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Package size={22} color="#10b981" />
+            <h2 style={{ color: 'var(--text-main)', fontSize: '1.4rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Package size={22} color="var(--primary)" />
               {isCustomer ? 'My E-Waste Submissions' : isAgent ? 'Assigned Collection Orders' : 'All Platform Products'}
             </h2>
-            <p style={{ color: '#94a3b8', fontSize: '0.825rem' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.825rem' }}>
               {isCustomer 
                 ? 'Track your item collection status and contact your designated collection agent.' 
                 : 'Inspect customer contact details, schedule visits, and process payments.'}
@@ -122,7 +126,7 @@ const ProductList = () => {
               onChange={(e) => setSearch(e.target.value)}
               style={{ paddingLeft: '2.2rem', padding: '0.6rem 0.85rem 0.6rem 2.2rem', fontSize: '0.85rem' }}
             />
-            <Search size={14} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <Search size={14} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
           </div>
         </div>
 
@@ -130,12 +134,12 @@ const ProductList = () => {
         {actionSuccess && <div className="alert alert-success">{actionSuccess}</div>}
 
         {loading ? (
-          <p style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8' }}>Loading products list...</p>
+          <p style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>Loading products list...</p>
         ) : filteredProducts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#0d1424', border: '1px dashed #1e293b', borderRadius: '8px' }}>
-            <Package size={40} color="#64748b" style={{ margin: '0 auto 0.75rem' }} />
-            <h4 style={{ color: '#f8fafc', fontSize: '1rem' }}>No E-Waste Items Found</h4>
-            <p style={{ color: '#94a3b8', fontSize: '0.825rem', marginTop: '0.2rem' }}>
+          <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'var(--bg-secondary)', border: '1px dashed var(--border)', borderRadius: '8px' }}>
+            <Package size={40} color="var(--text-dim)" style={{ margin: '0 auto 0.75rem' }} />
+            <h4 style={{ color: 'var(--text-main)', fontSize: '1rem' }}>No E-Waste Items Found</h4>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.825rem', marginTop: '0.2rem' }}>
               {isCustomer ? "You haven't listed any electronic items for collection yet." : 'No items match your search filter.'}
             </p>
             {isCustomer && (
@@ -216,21 +220,21 @@ const ProductList = () => {
                   </div>
 
                   {/* Section Divider */}
-                  <div style={{ borderTop: '1px solid #162033', margin: '0.85rem 0', paddingTop: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                  <div style={{ borderTop: '1px solid var(--border)', margin: '0.85rem 0', paddingTop: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
                     
                     {/* CUSTOMER VIEW: Contact Designated Agent */}
                     {isCustomer && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                         <div>
-                          <span style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>
                             Assigned Collection Agent
                           </span>
-                          <div style={{ fontSize: '0.85rem', color: '#f8fafc', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <Truck size={14} color="#38bdf8" /> {agent?.name || 'Local Collection Agent'}
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <Truck size={14} color="var(--secondary)" /> {agent?.name || 'Local Collection Agent'}
                           </div>
                           {agent?.address && (
-                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                              <MapPin size={12} color="#10b981" /> {agent.address}
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <MapPin size={12} color="var(--primary)" /> {agent.address}
                             </div>
                           )}
                         </div>
@@ -240,7 +244,7 @@ const ProductList = () => {
                             <a
                               href={`tel:${agent.mobile}`}
                               className="btn btn-outline"
-                              style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', color: '#34d399', borderColor: '#10b981' }}
+                              style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', color: 'var(--primary)', borderColor: 'var(--border)' }}
                             >
                               <Phone size={13} /> Call Agent ({agent.mobile})
                             </a>
@@ -249,7 +253,7 @@ const ProductList = () => {
                               target="_blank"
                               rel="noreferrer"
                               className="btn btn-outline"
-                              style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', color: '#38bdf8' }}
+                              style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', color: 'var(--secondary)', borderColor: 'var(--border)' }}
                             >
                               <MessageCircle size={13} /> WhatsApp
                             </a>
@@ -261,19 +265,19 @@ const ProductList = () => {
                     {/* AGENT & ADMIN VIEW: Customer Pickup Location & 1-Click Status Controls */}
                     {(isAgent || isAdmin) && (
                       <>
-                        <div style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>
-                          <div style={{ fontWeight: 600, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <User size={13} color="#38bdf8" /> Customer: {customer?.name || item.username}
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          <div style={{ fontWeight: 600, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <User size={13} color="var(--secondary)" /> Customer: {customer?.name || item.username}
                           </div>
-                          <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.2rem', fontSize: '0.75rem', color: '#94a3b8' }}>
+                          <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.2rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                             {customer?.mobile && (
-                              <a href={`tel:${customer.mobile}`} style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <a href={`tel:${customer.mobile}`} style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                 <Phone size={11} /> {customer.mobile}
                               </a>
                             )}
                             {customer?.address && (
                               <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                <MapPin size={11} color="#10b981" /> {customer.address}
+                                <MapPin size={11} color="var(--secondary)" /> {customer.address}
                               </span>
                             )}
                           </div>

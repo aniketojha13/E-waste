@@ -70,7 +70,14 @@ const AgentList = () => {
     setError('');
     setSuccess('');
     try {
-      await API.post('/admin/agents', newAgent);
+      const res = await API.post('/admin/agents', newAgent);
+      const createdAgent = res.data.agent || { 
+        ...newAgent, 
+        role: 'agent', 
+        createdAt: new Date().toISOString() 
+      };
+      // Real-time immediate update
+      setAgents(prev => [createdAgent, ...prev]);
       setSuccess(`Collection agent @${newAgent.username} registered successfully!`);
       setShowAddModal(false);
       setNewAgent({ name: '', username: '', email: '', password: '', mobile: '', address: '' });
@@ -99,8 +106,12 @@ const AgentList = () => {
     setError('');
     setSuccess('');
     try {
-      await API.put(`/admin/users/${editingAgent.username}`, editForm);
-      setSuccess(`Agent @${editingAgent.username} updated successfully!`);
+      const res = await API.put(`/admin/users/${editingAgent.username}`, editForm);
+      const updatedUser = res.data.user || { ...editingAgent, ...editForm };
+      
+      // Instant real-time UI update
+      setAgents(prev => prev.map(a => a.username === editingAgent.username ? { ...a, ...updatedUser } : a));
+      setSuccess(`Agent @${editingAgent.username} updated in real time!`);
       setEditingAgent(null);
       fetchAgents();
     } catch (err) {
@@ -115,11 +126,14 @@ const AgentList = () => {
     setError('');
     setSuccess('');
     try {
+      // Instant real-time UI update
+      setAgents(prev => prev.filter(a => a.username !== username));
       await API.delete(`/admin/users/${username}`);
-      setSuccess(`Agent @${username} removed from the system.`);
+      setSuccess(`Agent @${username} removed from the system in real time.`);
       fetchAgents();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete agent.');
+      fetchAgents();
     }
   };
 

@@ -241,12 +241,12 @@ const Auth = () => {
               <div style={{
                 marginTop: '1.25rem',
                 padding: '0.85rem 1rem',
-                background: '#0d1424',
+                background: 'var(--bg-secondary)',
                 borderRadius: '8px',
-                border: '1px solid #1e293b'
+                border: '1px solid var(--border)'
               }}>
-                <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <KeyRound size={13} color="#34d399" /> Fast Demo Logins
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <KeyRound size={13} color="var(--primary)" /> Fast Demo Logins
                 </span>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                   <button

@@ -72,9 +72,9 @@ const PaymentList = () => {
       </div>
 
       {isAgentOrAdmin && (
-        <div className="card" style={{ marginBottom: '1.75rem', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-          <h3 style={{ color: '#34d399', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '1.25rem' }}>
-            <Edit size={20} color="#10b981" /> Update Payment & Doorstep Pickup Status
+        <div className="card" style={{ marginBottom: '1.75rem', background: 'var(--primary-light)', border: '1px solid var(--border)' }}>
+          <h3 style={{ color: 'var(--primary)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '1.25rem' }}>
+            <Edit size={20} color="var(--primary)" /> Update Payment & Doorstep Pickup Status
           </h3>
 
           {success && (
@@ -125,14 +125,14 @@ const PaymentList = () => {
       )}
 
       <div className="card">
-        <h2 style={{ color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1.25rem', fontSize: '1.6rem' }}>
-          <CreditCard size={24} color="#10b981" /> Payment & Settlement Records
+        <h2 style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1.25rem', fontSize: '1.6rem' }}>
+          <CreditCard size={24} color="var(--primary)" /> Payment & Settlement Records
         </h2>
 
         {loading ? (
-          <p style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8' }}>Loading payment records...</p>
+          <p style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>Loading payment records...</p>
         ) : payments.length === 0 ? (
-          <p style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8' }}>No payment records found.</p>
+          <p style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>No payment records found.</p>
         ) : (
           <div className="table-container">
             <table className="custom-table">
@@ -148,14 +148,14 @@ const PaymentList = () => {
               <tbody>
                 {payments.map((p) => (
                   <tr key={p.pid}>
-                    <td style={{ fontWeight: 600, color: '#34d399', fontFamily: 'monospace' }}>{p.pid}</td>
-                    <td style={{ color: '#cbd5e1' }}>{p.username}</td>
+                    <td style={{ fontWeight: 600, color: 'var(--primary)', fontFamily: 'monospace' }}>{p.pid}</td>
+                    <td style={{ color: 'var(--text-main)' }}>{p.username}</td>
                     <td>
                       <span className={`status-badge status-${(p.status || 'pending').toLowerCase()}`}>
                         {p.status}
                       </span>
                     </td>
-                    <td style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                    <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       {p.updatedAt ? new Date(p.updatedAt).toLocaleString() : 'N/A'}
                     </td>
                     {isAgentOrAdmin && (
@@ -163,7 +163,7 @@ const PaymentList = () => {
                         <button 
                           onClick={() => setSelectedPid(p.pid)}
                           className="btn btn-outline" 
-                          style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem', borderColor: 'rgba(16, 185, 129, 0.4)', color: '#34d399' }}
+                          style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem', borderColor: 'var(--border)', color: 'var(--primary)' }}
                         >
                           Select PID
                         </button>

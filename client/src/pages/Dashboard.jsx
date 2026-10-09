@@ -81,12 +81,9 @@ const Dashboard = ({ onOpenAiBot }) => {
         </p>
 
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-          <Link to="/login" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem' }}>
+          <Link to="/login" className="btn btn-primary" style={{ padding: '0.75rem 1.75rem' }}>
             Sell or Recycle a Device <ArrowRight size={16} />
           </Link>
-          <button onClick={onOpenAiBot} className="btn btn-outline" style={{ padding: '0.75rem 1.5rem' }}>
-            <Bot size={16} color="var(--primary)" /> Diagnose with EcoBot AI
-          </button>
         </div>
       </div>
 

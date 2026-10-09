@@ -58,6 +58,103 @@
   --shadow-lg: 0 10px 24px -4px rgba(0, 0, 0, 0.09);
 }
 
+/* Day Light Mode Surface & Component Overrides */
+[data-theme="light"] .card,
+.light-theme .card,
+[data-theme="light"] .role-btn-card,
+.light-theme .role-btn-card,
+[data-theme="light"] .stat-card,
+.light-theme .stat-card,
+[data-theme="light"] .profile-dashboard-card,
+.light-theme .profile-dashboard-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .role-btn-card:hover,
+.light-theme .role-btn-card:hover {
+  background: #f8fafc;
+  border-color: var(--primary);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .form-input,
+.light-theme .form-input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] .form-input:focus,
+.light-theme .form-input:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+[data-theme="light"] .table-container,
+.light-theme .table-container {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .custom-table th,
+.light-theme .custom-table th {
+  background: #f8fafc;
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .custom-table td,
+.light-theme .custom-table td {
+  border-color: #f1f5f9;
+  color: #0f172a;
+}
+
+[data-theme="light"] .custom-table tbody tr:hover,
+.light-theme .custom-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+[data-theme="light"] .modal-overlay,
+.light-theme .modal-overlay {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+[data-theme="light"] .modal-card,
+.light-theme .modal-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .alert-error,
+.light-theme .alert-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+[data-theme="light"] .alert-success,
+.light-theme .alert-success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+[data-theme="light"] .alert-info,
+.light-theme .alert-info {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0369a1;
+}
+
+[data-theme="light"] .role-badge,
+.light-theme .role-badge {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -268,6 +365,49 @@ button {
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+/* Stat Cards */
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1.15rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.stat-card .stat-label {
+  font-size: 0.725rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  display: block;
+}
+
+.stat-card .stat-value {
+  margin: 0.25rem 0 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* Profile Section Card */
+.profile-dashboard-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
 }
 
 /* Form Controls */

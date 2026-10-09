@@ -57,22 +57,6 @@ const Navbar = ({ onOpenAiBot }) => {
           {theme === 'dark' ? <Sun size={17} color="#fbbf24" /> : <Moon size={17} color="#6366f1" />}
         </button>
 
-        {/* EcoBot AI Trigger */}
-        <button 
-          type="button" 
-          onClick={onOpenAiBot}
-          className="btn btn-outline"
-          style={{ 
-            padding: '0.4rem 0.85rem', 
-            fontSize: '0.8rem', 
-            color: 'var(--primary)', 
-            borderColor: 'var(--border)'
-          }}
-          title="EcoBot AI Device Diagnosis"
-        >
-          <Bot size={15} />
-          <span>EcoBot AI</span>
-        </button>
 
         {user ? (
           <div className="nav-user">

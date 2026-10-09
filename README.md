@@ -75,7 +75,30 @@ Open your browser at **[http://localhost:3000](http://localhost:3000)**.
 
 ## ☁️ Deployment
 
-### Deploy on Vercel
+### 🅰️ Deploy to AWS (Full Serverless Architecture)
+
+The project includes a complete Infrastructure-as-Code template ([template.yaml](file:///c:/Users/DELL/Desktop/Jatin%20Project/template.yaml)) deploying:
+- **Backend API**: AWS Lambda + API Gateway HTTP API
+- **Database**: 3 Amazon DynamoDB Tables (`ewaste-users`, `ewaste-products`, `ewaste-payments`)
+- **Storage**: Amazon S3 for device photo uploads
+- **Frontend CDN**: Amazon CloudFront distribution serving static React assets from S3
+
+#### Quick 1-Command Deployment:
+1. Open PowerShell and configure your AWS credentials (if not already done):
+   ```powershell
+   aws configure
+   ```
+   *(Enter your AWS Access Key ID, Secret Access Key, and Region such as `ap-south-1`)*
+
+2. Run the automated deployment script:
+   ```powershell
+   .\deploy-aws.ps1
+   ```
+   The script builds the Lambda backend, provisions all CloudFormation resources, seeds the initial DynamoDB admin and agents, builds the React frontend, and invalidates CloudFront. It outputs your live public HTTPS website URL!
+
+---
+
+### 🅱️ Deploy on Vercel
 1. Push this project to a GitHub repository:
    ```bash
    git add .
@@ -84,12 +107,6 @@ Open your browser at **[http://localhost:3000](http://localhost:3000)**.
    ```
 2. Import repository into [Vercel](https://vercel.com).
 3. The included `vercel.json` and `api/index.js` automatically route API requests to Serverless Functions and serve the React SPA.
-
-### Deploy on AWS (SAM CLI)
-```bash
-npm run sam:build
-npm run sam:deploy
-```
 
 ---
 
