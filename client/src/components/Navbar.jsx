@@ -59,22 +59,59 @@ const Navbar = ({ onOpenAiBot }) => {
 
 
         {user ? (
-          <div className="nav-user">
-            <span className="role-badge">
-              {currentRole === 'admin' ? 'Admin' : currentRole === 'agent' ? 'Collector' : 'Customer'}
-            </span>
-            <span style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.85rem' }}>
-              {currentDisplayName}
-            </span>
-            <Link to="/profile" className="btn btn-outline" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>
-              <UserIcon size={14} /> Profile
+          <div className="nav-user-container">
+            {/* User identity chip */}
+            <Link to="/profile" className="nav-user-chip" title="View Profile & Account Details">
+              <div 
+                className="nav-user-avatar"
+                style={{
+                  background: currentRole === 'admin'
+                    ? 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)'
+                    : currentRole === 'agent'
+                    ? 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)'
+                    : 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
+                }}
+              >
+                {(currentDisplayName || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div className="nav-user-details">
+                <span 
+                  className="nav-role-badge"
+                  style={{
+                    background: currentRole === 'admin' 
+                      ? 'rgba(56, 189, 248, 0.12)' 
+                      : currentRole === 'agent' 
+                      ? 'rgba(14, 165, 233, 0.12)' 
+                      : 'var(--primary-light)',
+                    color: currentRole === 'admin' 
+                      ? 'var(--secondary)' 
+                      : currentRole === 'agent' 
+                      ? '#0ea5e9' 
+                      : 'var(--primary)',
+                    border: `1px solid ${currentRole === 'admin' ? 'rgba(56, 189, 248, 0.25)' : currentRole === 'agent' ? 'rgba(14, 165, 233, 0.25)' : 'rgba(16, 185, 129, 0.25)'}`
+                  }}
+                >
+                  {currentRole === 'admin' ? 'ADMIN' : currentRole === 'agent' ? 'COLLECTOR' : 'CUSTOMER'}
+                </span>
+                <span className="nav-user-name">{currentDisplayName}</span>
+              </div>
             </Link>
+
+            {/* Direct Profile Action */}
+            <Link to="/profile" className="nav-btn-profile" title="Edit Profile Details">
+              <UserIcon size={14} />
+              <span>Profile</span>
+            </Link>
+
+            {/* Logout Action */}
             <button 
+              type="button"
               onClick={handleLogout} 
-              className="btn btn-outline" 
-              style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', color: '#f87171' }}
+              className="nav-btn-logout"
+              title="Sign Out of Session"
             >
-              <LogOut size={14} /> Log Out
+              <LogOut size={14} />
+              <span>Log Out</span>
             </button>
           </div>
         ) : (

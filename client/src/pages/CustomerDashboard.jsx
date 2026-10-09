@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import API from '../services/api';
-import DashboardProfileCard from '../components/DashboardProfileCard';
 import { 
   User, 
   PlusCircle, 
@@ -17,7 +16,6 @@ import {
 
 const CustomerDashboard = () => {
   const { user } = useContext(AuthContext);
-  const [profileUser, setProfileUser] = useState(user);
   const [products, setProducts] = useState([]);
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,12 +45,6 @@ const CustomerDashboard = () => {
 
   return (
     <div style={{ maxWidth: '1000px', margin: '1.5rem auto' }}>
-      {/* Designed Profile Section Card */}
-      <DashboardProfileCard 
-        currentUser={profileUser || user} 
-        onProfileUpdated={(updated) => setProfileUser(updated)} 
-      />
-
       {/* Welcome Banner */}
       <div className="card title-header" style={{ padding: '2rem 1.5rem', marginBottom: '1.5rem' }}>
         <div style={{ 
@@ -67,7 +59,7 @@ const CustomerDashboard = () => {
         </div>
         <h1 style={{ fontSize: '1.8rem', color: 'var(--text-main)' }}>Customer Recycling Portal</h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          Welcome back, <strong style={{ color: 'var(--text-main)' }}>{profileUser?.name || profileUser?.username || user?.name || user?.username}</strong>. Recycle electronic gadgets responsibly for verified doorstep cash payout.
+          Welcome back, <strong style={{ color: 'var(--text-main)' }}>{user?.name || user?.username}</strong>. Recycle electronic gadgets responsibly for verified doorstep cash payout.
         </p>
       </div>
 

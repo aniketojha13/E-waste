@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import API from '../services/api';
-import DashboardProfileCard from '../components/DashboardProfileCard';
 import { 
   Users, 
   Truck, 
@@ -24,7 +23,6 @@ import {
 
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
-  const [profileUser, setProfileUser] = useState(user);
   const [stats, setStats] = useState(null);
   const [agents, setAgents] = useState([]);
   const [loadingAgents, setLoadingAgents] = useState(true);
@@ -159,12 +157,6 @@ const AdminDashboard = () => {
 
   return (
     <div style={{ maxWidth: '1060px', margin: '1.5rem auto' }}>
-      {/* Designed Profile Section Card */}
-      <DashboardProfileCard 
-        currentUser={profileUser || user} 
-        onProfileUpdated={(updated) => setProfileUser(updated)} 
-      />
-
       {/* Header Banner */}
       <div className="card title-header" style={{ padding: '2rem 1.5rem', marginBottom: '1.5rem' }}>
         <div style={{ 
@@ -180,7 +172,7 @@ const AdminDashboard = () => {
         </div>
         <h1 style={{ fontSize: '1.8rem', color: 'var(--text-main)' }}>Platform Administrator Hub</h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          System Governance, Logistics Roster & Field Operations. Logged in as <strong style={{ color: 'var(--text-main)' }}>{profileUser?.name || profileUser?.username || user?.name || user?.username}</strong>
+          System Governance, Logistics Roster & Field Operations. Logged in as <strong style={{ color: 'var(--text-main)' }}>{user?.name || user?.username}</strong>
         </p>
       </div>
 

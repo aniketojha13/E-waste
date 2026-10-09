@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import API from '../services/api';
-import DashboardProfileCard from '../components/DashboardProfileCard';
 import { 
   User, 
   Truck, 
@@ -22,7 +21,6 @@ import {
 
 const AgentDashboard = () => {
   const { user } = useContext(AuthContext);
-  const [profileUser, setProfileUser] = useState(user);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -83,12 +81,6 @@ const AgentDashboard = () => {
 
   return (
     <div style={{ maxWidth: '1060px', margin: '1.5rem auto' }}>
-      {/* Designed Profile Section Card */}
-      <DashboardProfileCard 
-        currentUser={profileUser || user} 
-        onProfileUpdated={(updated) => setProfileUser(updated)} 
-      />
-
       {/* Header Banner */}
       <div className="card title-header" style={{ padding: '2rem 1.5rem', marginBottom: '1.5rem' }}>
         <div style={{ 
@@ -103,7 +95,7 @@ const AgentDashboard = () => {
         </div>
         <h1 style={{ fontSize: '1.8rem', color: 'var(--text-main)' }}>Collection Agent Operations</h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          Field Doorstep Logistics & Depot Routing. Logged in as <strong style={{ color: 'var(--text-main)' }}>{profileUser?.name || profileUser?.username || user?.name || user?.username}</strong>
+          Field Doorstep Logistics & Depot Routing. Logged in as <strong style={{ color: 'var(--text-main)' }}>{user?.name || user?.username}</strong>
         </p>
       </div>
 
