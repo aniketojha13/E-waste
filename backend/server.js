@@ -19,7 +19,7 @@ app.use(['/api/uploads', '/uploads'], require('./routes/uploads'));
 app.use(['/api/public', '/public'], require('./routes/public'));
 
 // Healthcheck
-app.get(['/api/health', '/health'], (req, res) => {
+app.get(['/', '/api', '/api/health', '/health'], (req, res) => {
   res.json({ status: 'OK', message: 'e-Amrit E-Waste Management Backend API is running' });
 });
 

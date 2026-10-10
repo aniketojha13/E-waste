@@ -375,7 +375,7 @@ const AdminDashboard = () => {
       {/* 2*2 Arrangement Section Grid on Admin Dashboard */}
       <div style={{ marginBottom: '1.75rem' }}>
         <h3 style={{ fontSize: '1.15rem', color: 'var(--text-main)', fontWeight: 700, margin: '0 0 0.85rem' }}>
-          Management Portals & Operations (2 × 2)
+          Management Portals & Operations 
         </h3>
         
         <div className="admin-2x2-grid">

@@ -7,3 +7,4 @@ env.json
 client/dist/
 frontend/dist/
 backend/data/
+*.log

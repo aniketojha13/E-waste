@@ -2,7 +2,12 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const DATA_FILE = path.resolve(__dirname, '../data/local-db.json');
+let memoryCache = null;
+
+const DEFAULT_FILE = path.resolve(__dirname, '../data/local-db.json');
+const DATA_FILE = (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
+  ? path.resolve('/tmp', 'local-db.json')
+  : DEFAULT_FILE;
 
 const INITIAL_USERS = [
   {
@@ -48,17 +53,23 @@ const INITIAL_USERS = [
 ];
 
 function loadData() {
+  if (memoryCache) {
+    return memoryCache;
+  }
+
   try {
-    if (fs.existsSync(DATA_FILE)) {
-      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+    const fileToRead = fs.existsSync(DATA_FILE) ? DATA_FILE : (fs.existsSync(DEFAULT_FILE) ? DEFAULT_FILE : null);
+    if (fileToRead) {
+      const data = JSON.parse(fs.readFileSync(fileToRead, 'utf-8'));
       // Ensure at least one admin account exists so administrator can always log in
       if (Array.isArray(data['ewaste-users'])) {
         const hasAdmin = data['ewaste-users'].some(x => x.role === 'admin');
         if (!hasAdmin) {
           data['ewaste-users'].push(INITIAL_USERS[0]);
-          saveData(data);
         }
       }
+      memoryCache = data;
+      saveData(data);
       return data;
     }
   } catch (err) {
@@ -71,11 +82,13 @@ function loadData() {
     'ewaste-payments': []
   };
 
+  memoryCache = initial;
   saveData(initial);
   return initial;
 }
 
 function saveData(data) {
+  memoryCache = data;
   try {
     const dir = path.dirname(DATA_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
